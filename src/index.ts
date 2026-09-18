@@ -91,6 +91,10 @@ export class AutoCompactEngine extends BasicCompactionEngine {
       return super.compactIfNeeded(agent, trigger, signal)
     }
 
+    // The shipped transaction resolves the same capacity again when it prices
+    // the span. That second lookup is accepted: it runs only on steps that
+    // already exceeded the budget, and the shipped signature exposes no seam to
+    // hand a resolved window through.
     const contextWindow = await resolveContextWindow(this.ctx, target, signal)
     if (contextWindow === undefined) return super.compactIfNeeded(agent, trigger, signal)
 
