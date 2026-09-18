@@ -102,24 +102,34 @@ concurrently on different routes.
 Provider-confirmed context overflow, `/compact`, and `auto: false` keep their
 shipped behaviour. Overflow recovery never consults a threshold.
 
-## Verified behaviour
+## Verification
 
-The decision surface is covered by unit tests, including the boundary where the
-budget stops binding and the point where the derived trigger must carry the
-decision past the shipped ratio check.
+Unit tests cover the decision surface, including the boundary where the budget
+stops binding and the point where the derived trigger must carry the decision
+past the shipped ratio check.
 
-End-to-end proof uses a real session and its durable log:
+A controlled pair of real sessions proves the trigger end to end. Both runs used
+the same task, the same route, and a reported window of 1,000,000 tokens, where
+the shipped ratio trigger is 800,000:
+
+| Run | `thresholdTokens` | Compaction events |
+|---|---|---|
+| A | 8,000 | 4 starts, 3 summaries, 1 prune |
+| B | — | none |
+
+Reproduce it with a scratch profile:
 
 ```sh
-zstd -dc ~/.dsh/sessions/<workspace>/<session>/session.v3.jsonl.zstd \
-  | grep -c 'compaction/start'
+dsh --profile autocompact-dogfood --from-default-profile headless --dump-config
+dsh plugin --profile autocompact-dogfood add link:/path/to/dsh-auto-compact
+# patch the profile with the route rows and a small thresholdTokens, then:
+cd /tmp/dsh-auto-compact-dogfood
+dsh --profile autocompact-dogfood "cat big-a.md big-b.md, then report the character count"
+zstd -dc ~/.dsh/sessions/--private-tmp-dsh-auto-compact-dogfood--/*/session.v3.jsonl.zstd \
+  | grep -oE '"type":"compaction/[a-z]+"' | sort | uniq -c
 ```
 
-Set `thresholdTokens` to a few thousand tokens in a scratch workspace, run a
-task that grows the conversation past it, and expect one
-`compaction/start`/`compaction/summary`/`compaction/end` bracket plus a
-`<compacted-summary>` replacement. Remove the field and the same task must not
-condense.
+Remove `thresholdTokens` and the same run must report no compaction events.
 
 ## Limits
 
