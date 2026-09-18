@@ -9,7 +9,7 @@ its proportional trigger.
 trigger = min(thresholdTokens, floor(contextWindow x thresholdRatio))
 ```
 
-Published on npm as [`@sagmans/dsh-auto-compact`](https://www.npmjs.com/package/@sagmans/dsh-auto-compact); every release carries a provenance attestation built by the tag workflow, and no npm token is stored. The code is [MIT licensed](LICENSE).
+Releases publish to npm as [`@sagmans/dsh-auto-compact`](https://www.npmjs.com/package/@sagmans/dsh-auto-compact); every release carries a provenance attestation built by the tag workflow, and no npm token is stored. The code is [MIT licensed](LICENSE).
 
 ## Requirements
 
