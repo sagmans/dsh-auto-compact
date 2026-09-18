@@ -3,6 +3,16 @@
  * @module @sagmans/dsh-auto-compact/policy
  */
 
+/**
+ * Half-token bias added to the derived budget before it is expressed as a
+ * fraction. The shipped engine re-derives its trigger with
+ * `Math.floor(window * ratio)`, and a budget that binary floating point cannot
+ * represent exactly scales back to one token less, which then rejects the
+ * retained tail as reaching the trigger. Half a token clears that rounding
+ * error while staying below the next whole token.
+ */
+const SCALE_EPSILON = 0.5
+
 /** Ratio and retention the shipped engine resolves for one exact route. */
 export interface RoutePolicyTerms {
   /** Pressure fraction of the model window. */
@@ -113,7 +123,7 @@ export function decidePressurePolicy(input: PressureDecisionInput): DerivedPress
   )
   return {
     thresholdTokens: cap,
-    thresholdRatio: cap / window,
+    thresholdRatio: (cap + SCALE_EPSILON) / window,
     retainTokens: Math.max(0, boundedTail),
   }
 }

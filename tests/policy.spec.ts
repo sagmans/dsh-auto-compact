@@ -30,11 +30,43 @@ function decide(overrides: Partial<Parameters<typeof decidePressurePolicy>[0]> =
 describe('decidePressurePolicy', () => {
   it('derives the absolute budget on a window whose ratio trigger is far above it', () => {
     const derived = decide()
-    assert.deepEqual(derived, {
-      thresholdTokens: CAP_200K,
-      thresholdRatio: CAP_200K / MEGA_WINDOW,
-      retainTokens: Math.floor(CAP_200K * SHARE_0_2),
-    })
+    assert.ok(derived !== undefined)
+    assert.equal(derived.thresholdTokens, CAP_200K)
+    assert.equal(derived.retainTokens, Math.floor(CAP_200K * SHARE_0_2))
+    // The fraction is priced by the shipped integer scaling, so the budget has to
+    // survive that round trip rather than be stored as the plain quotient.
+    assert.equal(Math.floor(MEGA_WINDOW * derived.thresholdRatio), CAP_200K)
+  })
+
+  it('expresses the budget so the shipped integer scaling reconstructs it exactly', () => {
+    // Windows whose quotient is not representable in binary floating point used
+    // to scale back one token short, which then rejected the retained tail as
+    // reaching the trigger.
+    const cases = [
+      { window: 1_333, cap: 960 },
+      { window: 1_666, cap: 1 },
+      { window: 1_999, cap: 1 },
+      { window: 2_332, cap: 1_508 },
+      { window: 2_665, cap: 1_508 },
+      { window: MEGA_WINDOW, cap: CAP_200K },
+    ]
+    for (const { window, cap } of cases) {
+      const derived = decidePressurePolicy({
+        totalTokens: cap,
+        contextWindow: window,
+        thresholdTokens: cap,
+        thresholdRatio: RATIO_0_8,
+        retainTokens: cap,
+        retainShare: 1,
+      })
+      assert.ok(derived !== undefined, `no policy derived for window ${window}`)
+      assert.equal(
+        Math.floor(window * derived.thresholdRatio),
+        cap,
+        `shipped scaling must reconstruct the budget on window ${window}`,
+      )
+      assert.ok(derived.retainTokens < derived.thresholdTokens, 'the tail must stay below the trigger')
+    }
   })
 
   it('keeps the ratio trigger when the window is already smaller than the budget', () => {
