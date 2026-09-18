@@ -91,11 +91,13 @@ describe('AutoCompactEngine', () => {
     )
   })
 
-  it('keeps the resolved policy as a writable own field so a derived view can shadow it', () => {
+  it('keeps the resolved policy frozen on a writable own field', () => {
     const { ctx } = stubContext(MEGA_WINDOW, 0)
     const engine = new AutoCompactEngine(ctx, { thresholdTokens: CAP_200K })
     const descriptor = Object.getOwnPropertyDescriptor(engine, 'config')
-    assert.equal(descriptor?.writable, true, 'the derived-policy receiver needs a shadowable config field')
+    // Writability belongs to the engine's own reload contract; the derived
+    // receiver shadows this field per call without depending on it.
+    assert.equal(descriptor?.writable, true)
     assert.equal(Object.isFrozen(engine.config), true)
   })
 
