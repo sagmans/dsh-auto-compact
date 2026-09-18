@@ -45,7 +45,9 @@ export interface AutoCompactConfig extends Omit<BasicCompactionConfig, 'modelPol
 }
 
 const thresholdTokensSchema = Schema.number().step(1).min(1)
-const retainShareSchema = Schema.number()
+// Bounds only; the open lower bound stays with resolvers, which reject a zero
+// or negative share with a message naming the field.
+const retainShareSchema = Schema.number().min(0).max(1)
 
 /** Shipped schema dicts; composing from them keeps a new shipped field usable here. */
 const stockConfigDict = BasicCompactionEngine.Config.dict ?? {}

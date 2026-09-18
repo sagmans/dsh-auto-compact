@@ -48,6 +48,11 @@ describe('Config schema', () => {
     assert.throws(() => Config({ thresholdTokens: 0 }))
     assert.throws(() => Config({ thresholdTokens: 1.5 }))
   })
+
+  it('rejects a tail share outside the accepted range at validation', () => {
+    assert.throws(() => Config({ retainShare: -0.1 }))
+    assert.throws(() => Config({ retainShare: 1.5 }))
+  })
 })
 
 describe('toEngineConfig', () => {
