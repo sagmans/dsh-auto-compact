@@ -1,0 +1,56 @@
+name: Check
+
+on:
+  push:
+    branches: [main, init]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '24.20.0'
+  PNPM_VERSION: '11.21.0'
+  DSH_TELEMETRY_DISABLED: '1'
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          package-manager-cache: false
+      - name: Install pnpm in runner-local directory
+        run: |
+          npm install --prefix "$RUNNER_TEMP/pnpm" --ignore-scripts --no-audit "pnpm@$PNPM_VERSION"
+          echo "$RUNNER_TEMP/pnpm/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Install plugin dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Dependency signatures
+        run: npm audit signatures
+      - name: Typecheck
+        run: pnpm run typecheck
+      - name: Unit tests
+        run: pnpm test
+      - name: Build
+        run: pnpm run build
+      - name: Built-artifact tests
+        run: pnpm run test:build
+      # A regression in the release guards would first surface as an
+      # unrecoverable registry write, so they run on every change.
+      - name: Release helper tests
+        run: pnpm test:release
+      - name: Package smoke
+        run: pnpm run pack-smoke
+      - name: Audit plugin dependencies
+        run: pnpm audit --audit-level high
