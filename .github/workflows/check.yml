@@ -32,7 +32,7 @@ jobs:
           package-manager-cache: false
       - name: Install pnpm in runner-local directory
         run: |
-          npm install --prefix "$RUNNER_TEMP/pnpm" --ignore-scripts --no-audit "pnpm$PNPM_VERSION"
+          npm install --prefix "$RUNNER_TEMP/pnpm" --ignore-scripts --no-audit "pnpm@$PNPM_VERSION"
           echo "$RUNNER_TEMP/pnpm/node_modules/.bin" >> "$GITHUB_PATH"
       - name: Install plugin dependencies
         run: pnpm install --frozen-lockfile

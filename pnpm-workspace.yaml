@@ -10,11 +10,12 @@ minimumReleaseAgeExclude:
   - '@deepseek-ai/dsh-*'
   - '@deepseek-ai/cordis@4.0.2'
 allowBuilds:
-  # tsx transpiles through esbuild, whose binary is the one build step required.
-  # Everything else stays blocked: no dependency runs install scripts here.
-  '@deepseek-ai/dsh-subprocess-local': set this to true or false
-  '@google/genai': set this to true or false
+  # Build steps the pinned toolchain needs: tsx transpiles through esbuild, and
+  # the profile test drives @deepseek-ai/dsh, which loads a subprocess backend,
+  # a native pty, and FFI. A dependency absent from this list stays blocked.
+  '@deepseek-ai/dsh-subprocess-local': true
+  '@google/genai': true
   esbuild: true
-  koffi: set this to true or false
-  node-pty: set this to true or false
-  protobufjs: set this to true or false
+  koffi: true
+  node-pty: true
+  protobufjs: true
