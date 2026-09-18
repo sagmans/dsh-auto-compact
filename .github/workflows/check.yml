@@ -46,6 +46,10 @@ jobs:
         run: pnpm run build
       - name: Built-artifact tests
         run: pnpm run test:build
+      # A regression in the release guards would first surface as an
+      # unrecoverable registry write, so they run on every change.
+      - name: Release helper tests
+        run: pnpm test:release
       - name: Package smoke
         run: pnpm run pack-smoke
       - name: Audit plugin dependencies

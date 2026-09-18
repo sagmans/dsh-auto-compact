@@ -40,6 +40,9 @@
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "compatibility": {
+      "dsh": ">=0.1.5-rc.1 <0.1.6"
     }
   },
   "scripts": {
@@ -47,9 +50,11 @@
     "test": "node --import tsx/esm --test \"tests/*.spec.ts\"",
     "build": "tsc -p tsconfig.build.json",
     "test:build": "node --test \"tests/*.test.mjs\"",
+    "test:release": "python3 -m unittest discover -s tests/release -p 'test_*.py'",
     "pack-smoke": "node tools/pack-smoke.mjs",
-    "check": "pnpm run typecheck && pnpm test && pnpm run build && pnpm run test:build && pnpm run pack-smoke",
-    "prepack": "pnpm run build"
+    "check": "pnpm run typecheck && pnpm test && pnpm run build && pnpm run test:build && pnpm test:release && pnpm run pack-smoke",
+    "prepack": "pnpm run build",
+    "prepublishOnly": "pnpm run typecheck && pnpm test && pnpm test:release"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.2",
