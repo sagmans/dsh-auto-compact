@@ -1,3 +1,6 @@
+# macOS metadata
+.DS_Store
+
 # Logs
 logs
 *.log
@@ -141,3 +144,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Python bytecode from the release guard suite
+__pycache__/

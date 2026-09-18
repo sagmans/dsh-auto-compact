@@ -9,6 +9,14 @@ its proportional trigger.
 trigger = min(thresholdTokens, floor(contextWindow x thresholdRatio))
 ```
 
+Published on npm as [`@sagmans/dsh-auto-compact`](https://www.npmjs.com/package/@sagmans/dsh-auto-compact); every release carries a provenance attestation built by the tag workflow, and no npm token is stored. The code is [MIT licensed](LICENSE).
+
+## Requirements
+
+- Node.js 24 LTS (verified with 24.20.0).
+- pnpm 11.21.0 for this repository.
+- A DeepSeek Harness install on the supported line: `>=0.1.5-rc.1 <0.1.6` (verified against `0.1.5-rc.2`). The plugin declares that range as a peer dependency, so a profile resolves the harness copy it already has rather than a second framework instance.
+
 ## Configuration
 
 Every shipped setting keeps its meaning; this backend adds two fields and one
@@ -146,8 +154,22 @@ Remove `thresholdTokens` and the same run must report no compaction events.
 
 ```sh
 pnpm install
-pnpm run check   # typecheck, unit tests, build, built-artifact tests, pack smoke
+pnpm run check   # typecheck, unit tests, build, built-artifact tests, release guards, pack smoke
 ```
 
 The profile loads `dist/index.js`, so rebuild and restart the profile after a
 source change.
+
+## Releasing
+
+Published artefacts carry a provenance attestation, which only a CI provider can issue, so releases ship from the tag workflow rather than a laptop.
+
+1. Bump `version` in `package.json`, land it on `main` through a reviewed PR, and wait for CI to pass on the merged SHA.
+2. Tag that SHA with a signed tag and push it. The tag ruleset admits repository admins only.
+3. [`.github/workflows/release.yml`](.github/workflows/release.yml) re-runs the checks and the package smoke; the publish job then waits for a maintainer's approval on the `npm-release` environment before it publishes with OIDC trusted publishing and automatic provenance.
+
+The workflow stores no npm token: the registry trusts `release.yml` on the `npm-release` environment, and [`scripts/npm/release.py`](scripts/npm/release.py) creates both the environment and that trust. The full runbook is [RELEASE.md](RELEASE.md).
+
+## License
+
+MIT
