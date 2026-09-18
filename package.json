@@ -1,0 +1,78 @@
+{
+  "name": "@sagmans/dsh-auto-compact",
+  "version": "0.1.0",
+  "description": "Absolute token trigger for DeepSeek Harness automatic compaction: condense at a fixed token budget or at the model window ratio, whichever comes first.",
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "plugin",
+    "compaction",
+    "cordis"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "engines": {
+    "node": "^24.0.0"
+  },
+  "packageManager": "pnpm@11.21.0",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sagmans/dsh-auto-compact.git"
+  },
+  "homepage": "https://github.com/sagmans/dsh-auto-compact#readme",
+  "bugs": "https://github.com/sagmans/dsh-auto-compact/issues",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx/esm --test \"tests/*.spec.ts\"",
+    "build": "tsc -p tsconfig.build.json",
+    "test:build": "node --test \"tests/*.test.mjs\"",
+    "pack-smoke": "node tools/pack-smoke.mjs",
+    "check": "pnpm run typecheck && pnpm test && pnpm run build && pnpm run test:build && pnpm run pack-smoke",
+    "prepack": "pnpm run build"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.2",
+    "@deepseek-ai/dsh-agent": ">=0.1.5-rc.1 <0.1.6",
+    "@deepseek-ai/dsh-compaction": ">=0.1.5-rc.1 <0.1.6",
+    "@deepseek-ai/dsh-compaction-basic": ">=0.1.5-rc.1 <0.1.6",
+    "@deepseek-ai/dsh-llm": ">=0.1.5-rc.1 <0.1.6",
+    "@deepseek-ai/dsh-session": ">=0.1.5-rc.1 <0.1.6",
+    "@deepseek-ai/dsh-token-meter": ">=0.1.5-rc.1 <0.1.6",
+    "@deepseek-ai/schemastery": "^3.18.2"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "4.0.2",
+    "@deepseek-ai/dsh": "0.1.5-rc.2",
+    "@deepseek-ai/dsh-agent": "0.1.5-rc.2",
+    "@deepseek-ai/dsh-compaction": "0.1.5-rc.2",
+    "@deepseek-ai/dsh-compaction-basic": "0.1.5-rc.2",
+    "@deepseek-ai/dsh-llm": "0.1.5-rc.2",
+    "@deepseek-ai/dsh-session": "0.1.5-rc.2",
+    "@deepseek-ai/dsh-token-meter": "0.1.5-rc.2",
+    "@deepseek-ai/schemastery": "3.18.2",
+    "@types/node": "22.20.0",
+    "tsx": "4.22.4",
+    "typescript": "6.0.3"
+  }
+}

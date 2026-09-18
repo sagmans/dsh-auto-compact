@@ -1,0 +1,20 @@
+packages: []
+# The harness packages this plugin consumes are registry peers, so they and the
+# peers of those peers must resolve here; without this every harness import in
+# the tests would resolve to nothing.
+autoInstallPeers: true
+# Quarantine window for registry packages; the harness release line is younger
+# than the window, so it is excluded and the lockfile pins what resolves.
+minimumReleaseAge: 10080
+minimumReleaseAgeExclude:
+  - '@deepseek-ai/dsh-*'
+  - '@deepseek-ai/cordis@4.0.2'
+allowBuilds:
+  # tsx transpiles through esbuild, whose binary is the one build step required.
+  # Everything else stays blocked: no dependency runs install scripts here.
+  '@deepseek-ai/dsh-subprocess-local': set this to true or false
+  '@google/genai': set this to true or false
+  esbuild: true
+  koffi: set this to true or false
+  node-pty: set this to true or false
+  protobufjs: set this to true or false

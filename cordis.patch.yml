@@ -1,0 +1,18 @@
+# dsh-auto-compact — the shipped compaction engine, plus an absolute token cap.
+#
+# The base row is disabled rather than reconfigured: a patch replaces a row's
+# whole config, and the engine swap is what adds the absolute trigger. This
+# profile plane owns no `compaction` provider of its own (the TUI and Web
+# bundles disable the base row so each agent's preset can own one), so this row
+# provides the service without a realm conflict and serves preset-composed
+# agents through the unscoped host listener.
+- id: compaction-basic
+  disabled: true
+
+- insert:
+    - id: auto-compact
+      name: '@sagmans/dsh-auto-compact'
+      config:
+        # Condense at 200K tokens even on a much larger window; the 80% ratio
+        # keeps governing every model whose window falls below 250K.
+        thresholdTokens: 200000
