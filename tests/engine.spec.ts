@@ -115,7 +115,8 @@ describe('AutoCompactEngine', () => {
     let seen: unknown
     return withDerivedPolicy(engine, policy, async view => {
       seen = view.config
-      assert.equal(view.ctx, engine.ctx)
+      // The receiver must share the engine's context and private state.
+      assert.equal((view as unknown as { ctx: unknown }).ctx, (engine as unknown as { ctx: unknown }).ctx)
       return null
     }).then(() => {
       assert.equal(seen, policy)
