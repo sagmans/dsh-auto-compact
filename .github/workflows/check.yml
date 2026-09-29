@@ -54,3 +54,7 @@ jobs:
         run: pnpm run pack-smoke
       - name: Audit plugin dependencies
         run: pnpm audit --audit-level high
+      # The manifest and the tree it describes must name the same harness
+      # releases; the registry half of this check runs on schedule.
+      - name: Harness matrix
+        run: node tools/harness-matrix.mjs

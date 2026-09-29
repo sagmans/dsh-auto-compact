@@ -4,11 +4,24 @@ packages: []
 # the tests would resolve to nothing.
 autoInstallPeers: true
 # Quarantine window for registry packages; the harness release line is younger
-# than the window, so it is excluded and the lockfile pins what resolves.
+# than the window, so it is excluded and the lockfile pins what resolves. The
+# 0.2.0-rc.2 line published its own dependency set inside the window, so those
+# exact versions are named too; an exclusion never covers a later version.
 minimumReleaseAge: 10080
 minimumReleaseAgeExclude:
   - '@deepseek-ai/dsh-*'
+  - '@deepseek-ai/dsh@0.2.0-rc.2'
   - '@deepseek-ai/cordis@4.0.2'
+  - '@deepseek-ai/cordis@4.0.4'
+  - '@deepseek-ai/cordis-plugin-group@1.0.4'
+  - '@deepseek-ai/cordis-plugin-include@1.0.9'
+  - '@deepseek-ai/cordis-plugin-loader@1.0.5'
+  - '@deepseek-ai/cordis-plugin-timer@1.1.6'
+  - '@deepseek-ai/cosmokit@1.8.5'
+  - '@deepseek-ai/schemastery@3.18.4'
+  - '@deepseek-ai/libreoffice-kit*'
+  - '@earendil-works/pi-ai@0.87.1'
+  - '@earendil-works/pi-telemetry@0.87.1'
 allowBuilds:
   # Build steps the pinned toolchain needs: tsx transpiles through esbuild, and
   # the profile test drives @deepseek-ai/dsh, which loads a subprocess backend,
