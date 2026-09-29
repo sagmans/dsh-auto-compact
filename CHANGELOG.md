@@ -22,12 +22,21 @@ carry a breaking change, and a patch carries only fixes.
 
 ### Changed
 
-- The supported harness line is `>=0.1.5-rc.1 <0.2.0`, and
+- The supported harness line is `>=0.1.5-rc.1 <0.3.0`, and
   `dsh.compatibility.dshReleases` names the releases that passed the gates:
-  `0.1.5-rc.2`, `0.1.5-rc.3`, and `0.1.7-rc.2`. The former `<0.1.6` ceiling
-  was the one side out of step with the range's own intent: the harness refuses
-  to install a plugin whose peers do not cover the running release, so a profile
-  on `0.1.5-rc.3` or `0.1.7-rc.2` was told the plugin is incompatible and
-  offered only a per-version risk exemption. The engine itself needed no change
-  for either line: the 0.1.7 line keeps the same `compaction-basic` engine API,
-  so the absolute budget binds there the way it does on 0.1.5.
+  `0.1.5-rc.2`, `0.1.5-rc.3`, `0.1.7-rc.2`, and `0.2.0-rc.2`. The former
+  `<0.1.6` ceiling was the one side out of step with the range's own intent: the
+  harness refuses to install a plugin whose peers do not cover the running
+  release, so a profile on `0.1.5-rc.3` or `0.1.7-rc.2` was told the plugin is
+  incompatible and offered only a per-version risk exemption. The engine itself
+  needed no change for either line: the 0.1.7 line keeps the same
+  `compaction-basic` engine API, so the absolute budget binds there the way it
+  does on 0.1.5.
+- The range now covers the 0.2.0 line, whose prerelease the harness admits
+  because it evaluates peers with `includePrerelease`; `0.2.0-rc.2` passed the
+  gates and a dogfood on the published 0.2.0-rc.2 CLI. The harness
+  `devDependencies` compile against `0.2.0-rc.2`, the one release npm resolves
+  for that line here: npm reaches a prerelease only through a comparator naming
+  its exact tuple, so neither this package's range nor a peer can pull it in.
+  Every harness peer keeps the width of `dsh.compatibility.dsh` so a consumer
+  resolves the framework copy its profile already runs.

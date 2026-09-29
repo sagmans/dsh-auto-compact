@@ -79,9 +79,9 @@ for (const [name, declared] of harnessEntries(manifest.peerDependencies)) {
 }
 
 // A mounted package either accepts the whole compatible line or names one
-// verified release, because a range admits a prerelease only through a
-// comparator naming that exact X.Y.Z tuple: ">=0.1.5-rc.1 <0.2.0" resolves
-// 0.1.5-rc.3 and never 0.1.7-rc.2, so a row that serves the newer line has to
+// verified release, because npm admits a prerelease only through a range
+// comparator naming that exact X.Y.Z tuple: ">=0.1.5-rc.1 <0.3.0" resolves
+// 0.1.5-rc.3 and never 0.2.0-rc.2, so a row that serves the newer line has to
 // name it the way the harness's own bundles pin.
 for (const [name, declared] of harnessEntries(manifest.dependencies)) {
   if (declared !== compatibility && !releases.includes(declared)) {

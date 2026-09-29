@@ -17,10 +17,10 @@ import { fileURLToPath } from 'node:url'
 const ROOT = fileURLToPath(new URL('../', import.meta.url))
 const TOOL = join(ROOT, 'tools', 'harness-matrix.mjs')
 /** The peer range this plugin accepts, wider than the releases its gates ran on. */
-const RANGE = '>=0.1.5-rc.1 <0.2.0'
+const RANGE = '>=0.1.5-rc.1 <0.3.0'
 /** The releases the gates passed against; each one is a distinct line of evidence. */
-const VERIFIED = ['0.1.5-rc.2', '0.1.5-rc.3', '0.1.7-rc.2']
-/** A release no gate has seen: the harness's next line, not one of the three. */
+const VERIFIED = ['0.1.5-rc.2', '0.1.5-rc.3', '0.1.7-rc.2', '0.2.0-rc.2']
+/** A release no gate has seen: neither a verified release nor the range's first candidate. */
 const UNVERIFIED = '0.1.5-rc.1'
 
 const shipped = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'))
@@ -69,7 +69,7 @@ describe('harness matrix', () => {
   it('accepts a matrix that names the range, one verified release, and that release\'s peers', () => {
     const { code, output } = guard(matrix())
     assert.equal(code, 0, output)
-    assert.match(output, /harness-matrix: ok \(3 verified, compiled 0\.1\.5-rc\.2, peers >=0\.1\.5-rc\.1 <0\.2\.0\)/)
+    assert.match(output, /harness-matrix: ok \(4 verified, compiled 0\.1\.5-rc\.2, peers >=0\.1\.5-rc\.1 <0\.3\.0\)/)
   })
 
   it('declares the wider line, the verified releases, and the guard in this manifest', () => {
@@ -91,10 +91,10 @@ describe('harness matrix', () => {
 
   it('rejects a verified release outside the range', () => {
     const broken = matrix()
-    broken.dsh.compatibility.dshReleases['0.2.0'] = 'compatible'
+    broken.dsh.compatibility.dshReleases['0.3.0'] = 'compatible'
     const { code, output } = guard(broken)
     assert.equal(code, 1)
-    assert.match(output, /verified release 0\.2\.0 lies outside the compatible range/)
+    assert.match(output, /verified release 0\.3\.0 lies outside the compatible range/)
   })
 
   it('rejects a peer that names one release instead of the range', () => {

@@ -15,7 +15,7 @@ Releases publish to npm as [`@sagmans/dsh-auto-compact`](https://www.npmjs.com/p
 
 - Node.js 24 LTS (verified with 24.20.0).
 - pnpm 11.21.0 for this repository.
-- A DeepSeek Harness install on the supported line: `>=0.1.5-rc.1 <0.2.0`, verified against `0.1.5-rc.2`, `0.1.5-rc.3`, and `0.1.7-rc.2`. The plugin declares that range as a peer dependency, so a profile resolves the harness copy it already has rather than a second framework instance, and `dsh.compatibility.dshReleases` names the releases that passed the gates — the harness refuses an install whose peer range does not cover it.
+- A DeepSeek Harness install on the supported line: `>=0.1.5-rc.1 <0.3.0`, verified against `0.1.5-rc.2`, `0.1.5-rc.3`, `0.1.7-rc.2`, and `0.2.0-rc.2`. The plugin declares that range as a peer dependency, so a profile resolves the harness copy it already has rather than a second framework instance, and `dsh.compatibility.dshReleases` names the releases that passed the gates — the harness refuses an install whose peer range does not cover it.
 
 ## Configuration
 
