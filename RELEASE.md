@@ -6,12 +6,26 @@ Applies to maintainers. Current release owner: repository owner ([`LICENSE`](LIC
 
 [SemVer](https://semver.org). While at 0.x, minor bumps may contain breaking changes; patch bumps are fixes only. The git tag (`vX.Y.Z`) and `package.json` `version` must always match. The tag workflow fails before publish when they do not.
 
+## Harness matrix
+
+This plugin mounts no harness package of its own: its peers range over the whole supported line so a profile resolves the harness copy it already runs rather than a second framework instance, and its dev tree compiles against one release. `dsh.compatibility.dsh` is that range and `dsh.compatibility.dshReleases` names the releases that passed the gates. `pnpm run matrix` (`node tools/harness-matrix.mjs`) checks the matrix offline — every verified release lies inside the range, every harness peer declares the range, the harness `devDependencies` name exactly one verified release, and any mounted package or aliased install names a verified release — and `pnpm run check` runs it on every change. [`.github/workflows/harness-matrix.yml`](.github/workflows/harness-matrix.yml) runs the same tool with `--check-registry` daily and fails when `@deepseek-ai/dsh@latest` is not a verified release.
+
+A package mounted from `dependencies` answers to a stricter rule than a peer: npm resolves a prerelease only through a range comparator naming its own `X.Y.Z` tuple, so `>=0.1.5-rc.1 <0.2.0` reaches `0.1.5-rc.3` and never a `0.1.7` prerelease. A row that serves the newer line names that release, and an aliased install names one, the way the harness's own bundles pin.
+
+That failing scheduled run is the matrix bump, and it is a release-sized change:
+
+1. Run `pnpm run matrix -- --check-registry` to read the release the harness now serves as `latest`.
+2. Add it to `dsh.compatibility.dshReleases` and raise the harness `devDependencies` to it; the peers stay on `dsh.compatibility.dsh`.
+3. `pnpm install`, then run every gate in [Gates](#gates--all-required-before-tagging). The harness preview lines publish their runtime plugins inside the release-age window this repository quarantines in [`pnpm-workspace.yaml`](pnpm-workspace.yaml), so a line newer than `0.1.5-rc.2` additionally needs `minimumReleaseAgeExclude` entries for the packages it pulls before a lockfile can resolve at all.
+4. Dogfood the new release before it ships: install the packed candidate into a cloned home's profile and cross a compaction trigger there, per [README](README.md#verification). Unit tests do not prove the engine takes over a real profile's service slot.
+5. Land the bump through a reviewed PR.
+
 ## Gates — all required before tagging
 
 1. Candidate lands on `main` through a reviewed PR (squash merge).
 2. `verify` CI green on the exact merged SHA.
-3. Locally on that SHA: `pnpm typecheck`, `pnpm test`, `pnpm run build`, `pnpm run test:build`, `pnpm test:release`, `npm audit signatures`, `pnpm audit --audit-level high`, and `node tools/pack-smoke.mjs`.
-4. Dogfooding: install the packed candidate into a plugin profile whose harness is the supported line (`>=0.1.5-rc.1 <0.1.6`) and drive a real session at a budget small enough to cross. Confirm the shipped row is gone, that `auto-compact` is the profile's only compaction service, and that the session log records `compaction/start` at the derived trigger. Unit tests do not prove the engine takes over a real profile's service slot or that the trigger moves.
+3. Locally on that SHA: `pnpm typecheck`, `pnpm test`, `pnpm run build`, `pnpm run test:build`, `pnpm test:release`, `npm audit signatures`, `pnpm audit --audit-level high`, `node tools/pack-smoke.mjs`, and `node tools/harness-matrix.mjs`.
+4. Dogfooding: install the packed candidate into a cloned home's plugin profile running a verified harness release and drive a real session at a budget small enough to cross. Confirm the shipped row is gone, that `auto-compact` is the profile's only compaction service, and that the session log records `compaction/start` at the derived trigger. Unit tests do not prove the engine takes over a real profile's service slot or that the trigger moves.
 5. README accuracy pass: every documented command, profile path, and configuration reference still behaves as written.
 6. A published npm version is immutable. A broken release is forward-fixed, never unpublished (see [Rollback](#rollback)).
 
