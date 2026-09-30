@@ -1,6 +1,6 @@
 {
   "name": "@sagmans/dsh-auto-compact",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Absolute token trigger for DeepSeek Harness automatic compaction: condense at a fixed token budget or at the model window ratio, whichever comes first.",
   "keywords": [
     "deepseek-harness",
