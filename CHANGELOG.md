@@ -8,6 +8,8 @@ carry a breaking change, and a patch carries only fixes.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-30
+
 ### Added
 
 - `pnpm run matrix` guards the harness matrix offline, and a scheduled
@@ -40,3 +42,20 @@ carry a breaking change, and a patch carries only fixes.
   its exact tuple, so neither this package's range nor a peer can pull it in.
   Every harness peer keeps the width of `dsh.compatibility.dsh` so a consumer
   resolves the framework copy its profile already runs.
+
+### Fixed
+
+- The release helper answers npm 12's metadata shape and npm's browser prompt, so
+  every OTP-gated action works on a setup [RELEASE.md](RELEASE.md) calls
+  supported. A version-qualified view answers with a one-element list on npm 12
+  where npm 11 answers with the object itself, and the metadata check demanded an
+  object: a supported npm was refused outright, and the failure read as corrupt
+  registry data rather than a shape difference. The PTY that carries npm's
+  authentication URL was opened and never written to, while npm prints that URL
+  and then waits for a keypress before it polls for approval, so the read stalled
+  until the window closed and the operator was never asked. The helper and its
+  guards are shared with the sibling plugin packages, so this carries the same
+  fix they do rather than a second implementation that would drift from them.
+
+[Unreleased]: https://github.com/sagmans/dsh-auto-compact/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/sagmans/dsh-auto-compact/compare/v0.1.0...v0.2.0
