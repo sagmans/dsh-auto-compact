@@ -8,6 +8,12 @@ carry a breaking change, and a patch carries only fixes.
 
 ## [Unreleased]
 
+### Changed
+
+- Agent guidance now requires signed version tags, matching GitHub releases,
+  publication approval, and npm readback so published versions keep a complete
+  source and release record without accidental republication.
+
 ## [0.2.0] - 2026-09-30
 
 ### Added
