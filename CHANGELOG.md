@@ -14,6 +14,7 @@ carry a breaking change, and a patch carries only fixes.
 
 ### Changed
 
+- Dependabot now proposes weekly updates for the SHA-pinned GitHub Actions, so CI pins keep receiving security fixes without manual tracking.
 - Agent guidance now requires signed version tags, matching GitHub releases,
   publication approval, and npm readback so published versions keep a complete
   source and release record without accidental republication.
