@@ -52,3 +52,7 @@ If a tag or signature is missing or invalid, stop and ask the maintainer; do not
 invent a source commit from current `main`. Forward-fix broken packages as
 `RELEASE.md` directs. Helper mutations require `CONFIRM=<action>`; preview
 with `DRY_RUN=1`.
+
+## Git hooks
+
+Checks run in `.githooks/`, not in push/PR CI. The global dotf hooks run `.githooks/<hook>.d/` once a human trusts the clone with `githooks-trust`; agents never write the trust store or drive `githooks-trust`. Never bypass hooks with `--no-verify`. `pre-push`: `npm audit signatures`, `pnpm run check`, `pnpm audit --audit-level high`.
