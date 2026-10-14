@@ -8,6 +8,10 @@ carry a breaking change, and a patch carries only fixes.
 
 ## [Unreleased]
 
+### Compatibility
+
+- Support Node.js 22, 24 and 26: `engines.node` is now `>=22.19.0` (was `^24.0.0`, which warned on Node 22 and 26), and typecheck plus tests pass on Node 22.19.0, 24.21.0 and 26.11.1. Development types move to `@types/node` 26.6.4.
+
 ### Security
 
 - Development installs resolve patched transitive dependencies through scoped `pnpm-workspace.yaml` overrides, clearing GHSA-6qxp-vccf-f47h (`@modelcontextprotocol/client`, `@modelcontextprotocol/sdk`), GHSA-jqcg-44mw-7w3h (`proxy-addr`), GHSA-ch52-4w7c-c8xp (`http-cache-semantics`), and GHSA-wq5f-xc86-pv6w (`sharp`) from the audit gate. The published package is unchanged.
