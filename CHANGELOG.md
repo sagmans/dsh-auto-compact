@@ -8,6 +8,8 @@ carry a breaking change, and a patch carries only fixes.
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-14
+
 ### Compatibility
 
 - Support Node.js 22, 24 and 26: `engines.node` is now `>=22.19.0` (was `^24.0.0`, which warned on Node 22 and 26), and typecheck plus tests pass on Node 22.19.0, 24.21.0 and 26.11.1. Development types move to `@types/node` 26.6.4.
@@ -72,5 +74,6 @@ carry a breaking change, and a patch carries only fixes.
   guards are shared with the sibling plugin packages, so this carries the same
   fix they do rather than a second implementation that would drift from them.
 
-[Unreleased]: https://github.com/sagmans/dsh-auto-compact/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/sagmans/dsh-auto-compact/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/sagmans/dsh-auto-compact/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/sagmans/dsh-auto-compact/compare/v0.1.0...v0.2.0
