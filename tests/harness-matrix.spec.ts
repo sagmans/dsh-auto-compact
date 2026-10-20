@@ -16,8 +16,15 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url))
 const TOOL = join(ROOT, 'tools', 'harness-matrix.mjs')
-/** The peer range this plugin accepts, wider than the releases its gates ran on. */
-const RANGE = '>=0.1.5-rc.1 <0.3.0'
+/**
+ * The peer range this plugin accepts, wider than the releases its gates ran on.
+ * Each prerelease X.Y.Z tuple has an alternative of its own, because npm admits
+ * a prerelease only through a bound naming its tuple, and each upper bound ends
+ * at -0 so the dsh plugin gate, which reads prereleases anywhere, stops there.
+ */
+const RANGE = '>=0.1.5-rc.1 <0.1.6-0 || >=0.1.6-0 <0.1.7-0 || >=0.1.7-0 <0.2.0-0 || >=0.2.0-0 <0.2.1-0 || >=0.2.1-0 <0.3.0-0'
+/** The same line as one span, which npm reads as refusing every later prerelease line. */
+const SPANNING = '>=0.1.5-rc.1 <0.3.0-0'
 /** The releases the gates passed against; each one is a distinct line of evidence. */
 const VERIFIED = ['0.1.5-rc.2', '0.1.5-rc.3', '0.1.7-rc.2', '0.2.0-rc.2']
 /** A release no gate has seen: neither a verified release nor the range's first candidate. */
@@ -69,7 +76,7 @@ describe('harness matrix', () => {
   it('accepts a matrix that names the range, one verified release, and that release\'s peers', () => {
     const { code, output } = guard(matrix())
     assert.equal(code, 0, output)
-    assert.match(output, /harness-matrix: ok \(4 verified, compiled 0\.1\.5-rc\.2, peers >=0\.1\.5-rc\.1 <0\.3\.0\)/)
+    assert.match(output, /harness-matrix: ok \(4 verified, compiled 0\.1\.5-rc\.2, peers >=0\.1\.5-rc\.1 <0\.1\.6-0 \|\| /)
   })
 
   it('declares the wider line, the verified releases, and the guard in this manifest', () => {
@@ -90,11 +97,37 @@ describe('harness matrix', () => {
   })
 
   it('rejects a verified release outside the range', () => {
-    const broken = matrix()
-    broken.dsh.compatibility.dshReleases['0.3.0'] = 'compatible'
-    const { code, output } = guard(broken)
-    assert.equal(code, 1)
-    assert.match(output, /verified release 0\.3\.0 lies outside the compatible range/)
+    for (const release of ['0.3.0', '0.3.0-rc.1']) {
+      const broken = matrix()
+      broken.dsh.compatibility.dshReleases[release] = 'compatible'
+      const { code, output } = guard(broken)
+      assert.equal(code, 1)
+      assert.match(output, new RegExp('verified release ' + release.replaceAll('.', '\\.') + ' lies outside the compatible range'))
+    }
+
+    // Outside also means outside npm's reading: one span over several lines
+    // admits a later line's prerelease only to the gate, never to npm.
+    const spanning = guard(matrix({
+      dsh: { compatibility: { dsh: SPANNING, dshReleases: { '0.2.1-rc.2': 'compatible' } } },
+      peerDependencies: { '@deepseek-ai/dsh-agent': SPANNING },
+      devDependencies: { '@deepseek-ai/dsh': '0.2.1-rc.2' },
+    }))
+    assert.equal(spanning.code, 1)
+    assert.match(spanning.output, /verified release 0\.2\.1-rc\.2 is a prerelease npm peer resolution refuses/)
+
+    // A bare upper bound puts the next line's prereleases inside the gate's reading.
+    const open = '>=0.2.1-0 <0.3.0'
+    const bare = guard(matrix({
+      dsh: { compatibility: { dsh: open, dshReleases: { '0.2.1-rc.2': 'compatible' } } },
+      peerDependencies: { '@deepseek-ai/dsh-agent': open },
+      devDependencies: { '@deepseek-ai/dsh': '0.2.1-rc.2' },
+    }))
+    assert.equal(bare.code, 1)
+    assert.match(bare.output, /bounds a line at <0\.3\.0, .* bound it at <0\.3\.0-0/)
+
+    const caret = guard(matrix({ dsh: { compatibility: { dsh: '^0.2.1-rc.1', dshReleases: { '0.2.1-rc.2': 'compatible' } } } }))
+    assert.equal(caret.code, 1)
+    assert.match(caret.output, /must declare ">=lower <upper" alternatives/)
   })
 
   it('rejects a peer that names one release instead of the range', () => {
