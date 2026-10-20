@@ -47,7 +47,8 @@
         "0.1.5-rc.2": "compatible",
         "0.1.5-rc.3": "compatible",
         "0.1.7-rc.2": "compatible",
-        "0.2.0-rc.2": "compatible"
+        "0.2.0-rc.2": "compatible",
+        "0.2.1-rc.2": "compatible"
       }
     }
   },
@@ -74,15 +75,15 @@
     "@deepseek-ai/schemastery": "^3.18.2"
   },
   "devDependencies": {
-    "@deepseek-ai/cordis": "4.0.2",
-    "@deepseek-ai/dsh": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-agent": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-compaction": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-compaction-basic": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-llm": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-session": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-token-meter": "0.2.0-rc.2",
-    "@deepseek-ai/schemastery": "3.18.2",
+    "@deepseek-ai/cordis": "4.0.5",
+    "@deepseek-ai/dsh": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-agent": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-compaction": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-compaction-basic": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-llm": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-session": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-token-meter": "0.2.1-rc.2",
+    "@deepseek-ai/schemastery": "3.18.5",
     "@types/node": "26.6.4",
     "tsx": "4.22.4",
     "typescript": "6.0.3"

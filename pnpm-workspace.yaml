@@ -5,23 +5,25 @@ packages: []
 autoInstallPeers: true
 # Quarantine window for registry packages; the harness release line is younger
 # than the window, so it is excluded and the lockfile pins what resolves. The
-# 0.2.0-rc.2 line published its own dependency set inside the window, so those
-# exact versions are named too; an exclusion never covers a later version.
+# 0.2.1-rc.2 line published its own dependency set inside the window, so those
+# exact versions are named too; an exclusion never covers a later version, and
+# the previous line's entries are dropped once nothing resolves them.
 minimumReleaseAge: 10080
 minimumReleaseAgeExclude:
   - '@deepseek-ai/dsh-*'
-  - '@deepseek-ai/dsh@0.2.0-rc.2'
-  - '@deepseek-ai/cordis@4.0.2'
-  - '@deepseek-ai/cordis@4.0.4'
-  - '@deepseek-ai/cordis-plugin-group@1.0.4'
-  - '@deepseek-ai/cordis-plugin-include@1.0.9'
-  - '@deepseek-ai/cordis-plugin-loader@1.0.5'
-  - '@deepseek-ai/cordis-plugin-timer@1.1.6'
-  - '@deepseek-ai/cosmokit@1.8.5'
-  - '@deepseek-ai/schemastery@3.18.4'
+  - '@deepseek-ai/dsh@0.2.1-rc.2'
+  - '@deepseek-ai/cordis@4.0.5'
+  - '@deepseek-ai/cordis-plugin-group@1.0.5'
+  - '@deepseek-ai/cordis-plugin-include@1.0.10'
+  - '@deepseek-ai/cordis-plugin-loader@1.0.6'
+  - '@deepseek-ai/cordis-plugin-timer@1.1.7'
+  - '@deepseek-ai/cosmokit@1.8.6'
+  - '@deepseek-ai/schemastery@3.18.5'
   - '@deepseek-ai/libreoffice-kit*'
-  - '@earendil-works/pi-ai@0.87.1'
-  - '@earendil-works/pi-telemetry@0.87.1'
+  # The line's model adapter resolves this vendor release on a fresh install;
+  # without it the dev tree would test against an older copy than hosts run.
+  - '@earendil-works/pi-ai@1.3.0'
+  - '@earendil-works/pi-telemetry@1.3.0'
 allowBuilds:
   # Build steps the pinned toolchain needs: tsx transpiles through esbuild, and
   # the profile test drives @deepseek-ai/dsh, which loads a subprocess backend,
