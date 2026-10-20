@@ -13,6 +13,7 @@ carry a breaking change, and a patch carries only fixes.
 - Verified against DeepSeek Harness `0.2.1-rc.2`. The harness `devDependencies` compile against it, with cordis `4.0.5` and schemastery `3.18.5`.
 - The supported line keeps its span, from `0.1.5-rc.1` up to `0.3.0`, but is now spelled as one alternative per line, each bounded at `-0`. npm refused the `0.1.7`, `0.2.0`, and `0.2.1` prerelease hosts under the single `>=0.1.5-rc.1 <0.3.0` span and resolved a second framework copy. The harness also read that bare `<0.3.0` as admitting `0.3.0` release candidates.
 - The matrix guard rejects a range either reader would misread, so a later bump cannot bring the gap back.
+- The cordis and schemastery peers stop below their next minor: `>=4.0.2 <4.1.0-0` and `>=3.18.2 <3.19.0-0`. The caret ranges also admitted `4.1` and `3.19`, which no verified harness ships.
 
 ## [0.2.1] - 2026-10-14
 
