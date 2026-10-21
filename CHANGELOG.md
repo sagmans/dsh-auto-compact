@@ -19,6 +19,10 @@ carry a breaking change, and a patch carries only fixes.
 
 - Development tooling moves to `@types/node` 26.6.5 and `tsx` 4.23.15. The published package is unchanged.
 
+### Security
+
+- Development installs resolve `@modelcontextprotocol/client` `2.3.1`, `fflate` `0.8.3`, and `fast-uri` `3.1.8` through scoped `pnpm-workspace.yaml` overrides, clearing GHSA-6prh-2h8m-c8cw (HTTP transports and OAuth requests followed cross-origin redirects and re-sent custom headers and request bodies), GHSA-px8p-9vwx-vf98 (a malformed ZIP64 archive sends `unzipSync` into an infinite loop), and GHSA-hrr3-gc8f-f4qj (a percent-encoded host escapes case normalization). The published package is unchanged.
+
 ## [0.2.1] - 2026-10-14
 
 ### Compatibility
