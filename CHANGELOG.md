@@ -15,6 +15,10 @@ carry a breaking change, and a patch carries only fixes.
 - The matrix guard rejects a range either reader would misread, so a later bump cannot bring the gap back.
 - The cordis and schemastery peers stop below their next minor: `>=4.0.2 <4.1.0-0` and `>=3.18.2 <3.19.0-0`. The caret ranges also admitted `4.1` and `3.19`, which no verified harness ships.
 
+### Changed
+
+- Development tooling moves to `@types/node` 26.6.5 and `tsx` 4.23.15. The published package is unchanged.
+
 ## [0.2.1] - 2026-10-14
 
 ### Compatibility
