@@ -39,7 +39,7 @@ class ReleaseTests(unittest.TestCase):
             "DRY_RUN": "0", "CONFIRM": "", "SCENARIO": "absent",
             "NPM_BIN": str(self.cwd / "npm"), "GH_BIN": str(self.cwd / "gh"),
             "GIT_BIN": str(self.cwd / "git"), "CALL_LOG": str(self.cwd / "calls.jsonl"),
-            "REVIEWER": "example", "TAG_PATTERN": "v*", "RULESET_NAME": "release-tags",
+            "RELEASE_OWNER": "example", "TAG_PATTERN": "v*", "RULESET_NAME": "release-tags",
         }
         for name in ("npm", "gh", "git"):
             tool = self.cwd / name
@@ -264,6 +264,8 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('"can_admins_bypass": false', result.stdout)
         self.assertIn('"type": "tag"', result.stdout)
+        # The tag push is the release approval, so the environment must not gain a reviewer gate.
+        self.assertNotIn('"reviewers"', result.stdout)
         self.assert_no_mutation()
         self.assertTrue(any("--paginate" in call for call in self.calls()))
 
@@ -283,11 +285,13 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(len(mutations), 2)
         self.assertFalse(any(call[4] == "repos/example/tool/rulesets" for call in mutations))
 
-    def test_github_conflicting_branch_policy_fails_before_mutation(self):
-        result = self.run_helper("setup-github-release", CONFIRM="setup-github-release", SCENARIO="branch-policy")
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("conflict", result.stderr)
-        self.assert_no_mutation()
+    def test_github_conflicting_controls_fail_before_mutation(self):
+        for scenario in ("branch-policy", "reviewer-gate"):
+            with self.subTest(scenario=scenario):
+                result = self.run_helper("setup-github-release", CONFIRM="setup-github-release", SCENARIO=scenario)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("conflict", result.stderr)
+                self.assert_no_mutation()
 
     def test_hardening_uses_explicit_registry_without_claiming_verification(self):
         result = self.run_helper("harden-publishing", CONFIRM="harden-publishing")

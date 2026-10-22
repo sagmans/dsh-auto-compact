@@ -146,9 +146,9 @@ if TOOL == "gh":
             state["environment"] = {
                 "can_admins_bypass": payload["can_admins_bypass"],
                 "deployment_branch_policy": payload["deployment_branch_policy"],
-                "protection_rules": [{"type": "required_reviewers", "reviewers": [
-                    {"type": "User", "reviewer": {"id": 42, "login": "example"}}
-                ]}],
+                # Mirrors GitHub, which reports the tag-only deployment policy as the sole rule
+                # of an environment created without reviewers.
+                "protection_rules": [{"type": "branch_policy"}],
             }
         elif endpoint == policies_endpoint:
             if SCENARIO == "policy-error":
@@ -168,7 +168,12 @@ if TOOL == "gh":
         if SCENARIO == "branch-policy":
             output({"can_admins_bypass": False,
                     "deployment_branch_policy": {"protected_branches": False, "custom_branch_policies": True},
-                    "protection_rules": [{"type": "required_reviewers", "reviewers": [
+                    "protection_rules": [{"type": "branch_policy"}]})
+        if SCENARIO == "reviewer-gate":
+            # A reviewer re-added as a rollback must stop the helper rather than be accepted.
+            output({"can_admins_bypass": False,
+                    "deployment_branch_policy": {"protected_branches": False, "custom_branch_policies": True},
+                    "protection_rules": [{"type": "branch_policy"}, {"type": "required_reviewers", "reviewers": [
                         {"type": "User", "reviewer": {"id": 42}}
                     ]}]})
         if "environment" in state:
