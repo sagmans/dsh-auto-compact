@@ -104,7 +104,9 @@ export interface PressureDecisionInput {
  * alone (no budget configured, no reported capacity, or a ratio trigger that is
  * already at least as tight).
  */
-export function decidePressurePolicy(input: PressureDecisionInput): DerivedPressurePolicy | undefined {
+export function decidePressurePolicy(
+  input: PressureDecisionInput,
+): DerivedPressurePolicy | undefined {
   const cap = input.thresholdTokens
   // The derived trigger can never exceed the absolute budget, so below the
   // budget there is nothing to decide and no capacity is needed.

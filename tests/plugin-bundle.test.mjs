@@ -3,8 +3,8 @@ import { spawnSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
+import { fileURLToPath } from 'node:url'
 
 const PACKAGE_NAME = '@sagmans/dsh-auto-compact'
 const CLI_PACKAGE = '@deepseek-ai/dsh'
@@ -12,7 +12,9 @@ const ROOT = fileURLToPath(new URL('../', import.meta.url))
 // The profile mechanics under test belong to the CLI that ships to users, so
 // the suite drives the registry build rather than a source checkout; the bin
 // path comes from that package's own manifest instead of a guessed layout.
-const CLI_MANIFEST = JSON.parse(readFileSync(join(ROOT, 'node_modules', CLI_PACKAGE, 'package.json'), 'utf8'))
+const CLI_MANIFEST = JSON.parse(
+  readFileSync(join(ROOT, 'node_modules', CLI_PACKAGE, 'package.json'), 'utf8'),
+)
 const CLI = join(ROOT, 'node_modules', CLI_PACKAGE, CLI_MANIFEST.bin.dsh)
 // The Web and TUI surfaces each compose their own host plane, so the swap has
 // to hold in both rather than in whichever one is convenient.
@@ -58,10 +60,13 @@ for (const profile of PROFILES) {
       assert.equal(result.status, 0, result.stderr || result.error?.message)
       return result.stdout
     }
-    const add = () => run('plugin', '--profile', profile, 'add', '--offline', '--ignore-scripts', `link:${ROOT}`)
+    const add = () =>
+      run('plugin', '--profile', profile, 'add', '--offline', '--ignore-scripts', `link:${ROOT}`)
     const dump = () => rows(run('--profile', profile, '--dump-config'))
-    const manifest = () => JSON.parse(readFileSync(join(home, 'profiles', profile, 'package.json'), 'utf8'))
-    const activations = () => manifest().dsh.profile.bundles.filter((name) => name === PACKAGE_NAME).length
+    const manifest = () =>
+      JSON.parse(readFileSync(join(home, 'profiles', profile, 'package.json'), 'utf8'))
+    const activations = () =>
+      manifest().dsh.profile.bundles.filter((name) => name === PACKAGE_NAME).length
     try {
       add()
       assert.equal(activations(), 1)

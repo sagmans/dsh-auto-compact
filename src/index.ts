@@ -9,15 +9,14 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
-import { BasicCompactionEngine } from '@deepseek-ai/dsh-compaction-basic'
-import type { CompactionResult, CompactionTrigger } from '@deepseek-ai/dsh-compaction'
 import type { Agent } from '@deepseek-ai/dsh-agent'
+import type { CompactionResult, CompactionTrigger } from '@deepseek-ai/dsh-compaction'
+import { BasicCompactionEngine } from '@deepseek-ai/dsh-compaction-basic'
 // Type-only: make the injected services this engine reads visible on Context.
 import type {} from '@deepseek-ai/dsh-llm'
 import type {} from '@deepseek-ai/dsh-token-meter'
-
-import { Config, resolveCapPolicy, routeKey, toEngineConfig } from './config.ts'
 import type { AutoCompactConfig, CapPolicy } from './config.ts'
+import { Config, resolveCapPolicy, routeKey, toEngineConfig } from './config.ts'
 import { decidePressurePolicy, routePolicyTerms } from './policy.ts'
 import {
   derivedConfig,
@@ -27,9 +26,14 @@ import {
   withDerivedPolicy,
 } from './view.ts'
 
-export { Config, DEFAULT_RETAIN_SHARE, resolveCapPolicy, routeKey, toEngineConfig } from './config.ts'
 export type { AbsoluteRoutePolicy, AutoCompactConfig, CapPolicy } from './config.ts'
-export { decidePressurePolicy, routePolicyTerms } from './policy.ts'
+export {
+  Config,
+  DEFAULT_RETAIN_SHARE,
+  resolveCapPolicy,
+  routeKey,
+  toEngineConfig,
+} from './config.ts'
 export type {
   DerivedPressurePolicy,
   PolicyTermsOverride,
@@ -37,6 +41,7 @@ export type {
   PressureDecisionInput,
   RoutePolicyTerms,
 } from './policy.ts'
+export { decidePressurePolicy, routePolicyTerms } from './policy.ts'
 
 /**
  * Shipped compaction backend plus an absolute token budget.
@@ -80,10 +85,11 @@ export class AutoCompactEngine extends BasicCompactionEngine {
     signal: AbortSignal,
   ): Promise<CompactionResult | null> {
     const target = trigger === 'pressure' ? routedTarget(agent.session) : undefined
-    const cap = target === undefined
-      ? undefined
-      : this.capPolicy.routeCaps.get(routeKey(target.provider, target.model))
-        ?? this.capPolicy.defaultCap
+    const cap =
+      target === undefined
+        ? undefined
+        : (this.capPolicy.routeCaps.get(routeKey(target.provider, target.model)) ??
+          this.capPolicy.defaultCap)
     const measured = cap === undefined ? 0 : this.ctx.tokenMeter.measure(agent.session).totalTokens
     // The derived trigger never exceeds the budget, so below it there is nothing
     // to decide and no capacity lookup is worth making on every step.
@@ -111,20 +117,20 @@ export class AutoCompactEngine extends BasicCompactionEngine {
     if (derived === undefined) return super.compactIfNeeded(agent, trigger, signal)
 
     this.ctx.logger.debug(
-      `auto-compact: ${target.provider}/${target.model} pressure ${measured}, `
-      + `ratio trigger ${Math.floor(contextWindow * terms.thresholdRatio)} on window ${contextWindow}, `
-      + `absolute budget ${cap} -> threshold ${derived.thresholdTokens}, tail ${derived.retainTokens}`,
+      `auto-compact: ${target.provider}/${target.model} pressure ${measured}, ` +
+        `ratio trigger ${Math.floor(contextWindow * terms.thresholdRatio)} on window ${contextWindow}, ` +
+        `absolute budget ${cap} -> threshold ${derived.thresholdTokens}, tail ${derived.retainTokens}`,
     )
 
     const result = await withDerivedPolicy(
       this,
       derivedConfig(this.config, override, derived),
-      view => BasicCompactionEngine.prototype.compactIfNeeded.call(view, agent, trigger, signal),
+      (view) => BasicCompactionEngine.prototype.compactIfNeeded.call(view, agent, trigger, signal),
     )
     if (result !== null) {
       this.ctx.logger.info(
-        `auto-compact: condensed at the absolute budget of ${derived.thresholdTokens} tokens `
-        + `(window ${contextWindow}, tail ${derived.retainTokens})`,
+        `auto-compact: condensed at the absolute budget of ${derived.thresholdTokens} tokens ` +
+          `(window ${contextWindow}, tail ${derived.retainTokens})`,
       )
     }
     return result

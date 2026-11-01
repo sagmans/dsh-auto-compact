@@ -65,7 +65,10 @@ describe('decidePressurePolicy', () => {
         cap,
         `shipped scaling must reconstruct the budget on window ${window}`,
       )
-      assert.ok(derived.retainTokens < derived.thresholdTokens, 'the tail must stay below the trigger')
+      assert.ok(
+        derived.retainTokens < derived.thresholdTokens,
+        'the tail must stay below the trigger',
+      )
     }
   })
 
@@ -122,7 +125,11 @@ describe('decidePressurePolicy', () => {
 })
 
 describe('routePolicyTerms', () => {
-  const base = { thresholdRatio: RATIO_0_8, retainRatio: STOCK_RETAIN_RATIO, retainTokens: undefined }
+  const base = {
+    thresholdRatio: RATIO_0_8,
+    retainRatio: STOCK_RETAIN_RATIO,
+    retainTokens: undefined,
+  }
 
   it('inherits the deployment ratio and scaled tail', () => {
     assert.deepEqual(routePolicyTerms(base, undefined, MID_WINDOW), {
@@ -136,7 +143,10 @@ describe('routePolicyTerms', () => {
   })
 
   it('lets an exact override replace the tail by ratio', () => {
-    assert.equal(routePolicyTerms(base, { retainRatio: 0.05 }, MID_WINDOW).retainTokens, Math.floor(MID_WINDOW * 0.05))
+    assert.equal(
+      routePolicyTerms(base, { retainRatio: 0.05 }, MID_WINDOW).retainTokens,
+      Math.floor(MID_WINDOW * 0.05),
+    )
   })
 
   it('lets an exact override replace the tail by absolute budget', () => {
@@ -150,7 +160,10 @@ describe('routePolicyTerms', () => {
 
   it('prefers an override ratio over an absolute deployment tail', () => {
     const absolute = { thresholdRatio: RATIO_0_8, retainRatio: undefined, retainTokens: 1_024 }
-    assert.equal(routePolicyTerms(absolute, { retainRatio: 0.1 }, MID_WINDOW).retainTokens, Math.floor(MID_WINDOW * 0.1))
+    assert.equal(
+      routePolicyTerms(absolute, { retainRatio: 0.1 }, MID_WINDOW).retainTokens,
+      Math.floor(MID_WINDOW * 0.1),
+    )
   })
 
   it('rejects a policy that resolves no retention form', () => {

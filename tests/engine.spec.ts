@@ -27,7 +27,11 @@ interface StubCounts {
 }
 
 /** Minimal services the shipped engine injects, plus call counting. */
-function stubContext(contextWindow: number | undefined, totalTokens: number, surfaceNodes: readonly unknown[] = []) {
+function stubContext(
+  contextWindow: number | undefined,
+  totalTokens: number,
+  surfaceNodes: readonly unknown[] = [],
+) {
   const ctx = new Context()
   const counts: StubCounts = { measure: 0, model: 0 }
   ctx.provide('llm', {
@@ -37,7 +41,7 @@ function stubContext(contextWindow: number | undefined, totalTokens: number, sur
         id: MODEL,
         provider: PROVIDER,
         name: MODEL,
-        ...contextWindow === undefined ? {} : { context: { contextWindow } },
+        ...(contextWindow === undefined ? {} : { context: { contextWindow } }),
       }
     },
   } as never)
@@ -68,7 +72,7 @@ function stubAgent(): Agent {
 /** Observe whether a call returns null, returns a result, or fails after the decision. */
 async function outcome(call: Promise<unknown>): Promise<'null' | 'value' | 'error'> {
   return call.then(
-    value => (value === null ? 'null' : 'value'),
+    (value) => (value === null ? 'null' : 'value'),
     () => 'error',
   )
 }
@@ -113,12 +117,21 @@ describe('AutoCompactEngine', () => {
       retainShare: SHARE_0_2,
     })
     assert.ok(derived !== undefined)
-    const policy = { ...engine.config, thresholdRatio: derived.thresholdRatio, retainTokens: derived.retainTokens, retainRatio: undefined, modelPolicies: [] }
+    const policy = {
+      ...engine.config,
+      thresholdRatio: derived.thresholdRatio,
+      retainTokens: derived.retainTokens,
+      retainRatio: undefined,
+      modelPolicies: [],
+    }
     let seen: unknown
-    return withDerivedPolicy(engine, policy, async view => {
+    return withDerivedPolicy(engine, policy, async (view) => {
       seen = view.config
       // The receiver must share the engine's context and private state.
-      assert.equal((view as unknown as { ctx: unknown }).ctx, (engine as unknown as { ctx: unknown }).ctx)
+      assert.equal(
+        (view as unknown as { ctx: unknown }).ctx,
+        (engine as unknown as { ctx: unknown }).ctx,
+      )
       return null
     }).then(() => {
       assert.equal(seen, policy)
@@ -151,18 +164,26 @@ describe('AutoCompactEngine', () => {
     const node = { seq: 1, tokens: 500, heuristicTokens: 500 }
     const shipped = stubContext(MEGA_WINDOW, CAP_200K, [node])
     const control = new AutoCompactEngine(shipped.ctx, {})
-    assert.equal(await outcome(control.compactIfNeeded(stubAgent(), 'pressure', AbortSignal.timeout(1_000))), 'null')
+    assert.equal(
+      await outcome(control.compactIfNeeded(stubAgent(), 'pressure', AbortSignal.timeout(1_000))),
+      'null',
+    )
 
     const derivedRun = stubContext(MEGA_WINDOW, CAP_200K, [node])
     const engine = new AutoCompactEngine(derivedRun.ctx, { thresholdTokens: CAP_200K })
-    assert.equal(await outcome(engine.compactIfNeeded(stubAgent(), 'pressure', AbortSignal.timeout(1_000))), 'error')
+    assert.equal(
+      await outcome(engine.compactIfNeeded(stubAgent(), 'pressure', AbortSignal.timeout(1_000))),
+      'error',
+    )
     assert.deepEqual(derivedRun.counts, { measure: 2, model: 2 })
   })
 
   it('never derives a policy for overflow recovery', async () => {
     const { ctx, counts } = stubContext(MEGA_WINDOW, CAP_200K)
     const engine = new AutoCompactEngine(ctx, { thresholdTokens: CAP_200K })
-    await outcome(engine.compactIfNeeded(stubAgent(), 'context-overflow', AbortSignal.timeout(1_000)))
+    await outcome(
+      engine.compactIfNeeded(stubAgent(), 'context-overflow', AbortSignal.timeout(1_000)),
+    )
     // Overflow bypasses capacity resolution entirely in the shipped engine.
     assert.deepEqual(counts, { measure: 1, model: 0 })
   })

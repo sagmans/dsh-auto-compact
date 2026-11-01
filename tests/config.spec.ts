@@ -7,7 +7,13 @@ import { describe, it } from 'node:test'
 
 import { BasicCompactionEngine } from '@deepseek-ai/dsh-compaction-basic'
 
-import { Config, DEFAULT_RETAIN_SHARE, resolveCapPolicy, routeKey, toEngineConfig } from '../src/config.ts'
+import {
+  Config,
+  DEFAULT_RETAIN_SHARE,
+  resolveCapPolicy,
+  routeKey,
+  toEngineConfig,
+} from '../src/config.ts'
 
 const stockConfigDict = BasicCompactionEngine.Config.dict ?? {}
 const stockRouteDict = stockConfigDict.modelPolicies?.inner?.dict ?? {}
@@ -105,7 +111,11 @@ describe('resolveCapPolicy', () => {
   it('rejects an invalid budget', () => {
     assert.throws(() => resolveCapPolicy({ thresholdTokens: 0 }), /positive integer/)
     assert.throws(() => resolveCapPolicy({ thresholdTokens: 1.5 }), /positive integer/)
-    assert.throws(() => resolveCapPolicy({ modelPolicies: [{ provider: 'p', model: 'm', thresholdTokens: -1 }] }), /positive integer/)
+    assert.throws(
+      () =>
+        resolveCapPolicy({ modelPolicies: [{ provider: 'p', model: 'm', thresholdTokens: -1 }] }),
+      /positive integer/,
+    )
   })
 
   it('rejects an out-of-range tail share', () => {

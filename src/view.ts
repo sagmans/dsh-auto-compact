@@ -5,13 +5,13 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
-import type { Session } from '@deepseek-ai/dsh-session'
-import type { LlmCallConfig } from '@deepseek-ai/dsh-llm'
 import type {
   BasicCompactionEngine,
   ModelCompactPolicyConfig,
   ResolvedConfig,
 } from '@deepseek-ai/dsh-compaction-basic'
+import type { LlmCallConfig } from '@deepseek-ai/dsh-llm'
+import type { Session } from '@deepseek-ai/dsh-session'
 import type { DerivedPressurePolicy } from './policy.ts'
 
 /** Exact provider/model route of the latest durable request. */
@@ -24,7 +24,8 @@ export type RouteTarget = Pick<LlmCallConfig, 'provider' | 'model'>
  */
 export function routedTarget(session: Session): RouteTarget | undefined {
   const config = session.requestHeader()?.config
-  if (config === undefined || config.provider.length === 0 || config.model.length === 0) return undefined
+  if (config === undefined || config.provider.length === 0 || config.model.length === 0)
+    return undefined
   return { provider: config.provider, model: config.model }
 }
 
@@ -38,7 +39,9 @@ export function findOverride(
   policies: readonly Readonly<ModelCompactPolicyConfig>[],
   target: RouteTarget,
 ): Readonly<ModelCompactPolicyConfig> | undefined {
-  return policies.find(policy => policy.provider === target.provider && policy.model === target.model)
+  return policies.find(
+    (policy) => policy.provider === target.provider && policy.model === target.model,
+  )
 }
 
 /**
@@ -53,7 +56,8 @@ export async function resolveContextWindow(
   target: RouteTarget,
   signal: AbortSignal,
 ): Promise<number | undefined> {
-  return (await ctx.llm.resolveModelInfo(target.provider, target.model, signal)).context?.contextWindow
+  return (await ctx.llm.resolveModelInfo(target.provider, target.model, signal)).context
+    ?.contextWindow
 }
 
 /**

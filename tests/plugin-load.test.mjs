@@ -42,7 +42,14 @@ test('built package mounts as the compaction service over stub dependencies', as
   })
   ctx.provide('tokenMeter', {
     measure() {
-      return { logRevision: 0, baseline: { kind: 'none', tokens: 0 }, surfaceDeltaTokens: 0, totalTokens: 0, surfaceTokens: 0, nodes: [] }
+      return {
+        logRevision: 0,
+        baseline: { kind: 'none', tokens: 0 },
+        surfaceDeltaTokens: 0,
+        totalTokens: 0,
+        surfaceTokens: 0,
+        nodes: [],
+      }
     },
   })
   ctx.provide('sessions', { flush: async () => {} })

@@ -4,12 +4,12 @@
  * @module @sagmans/dsh-auto-compact/config
  */
 
-import Schema from '@deepseek-ai/schemastery'
-import { BasicCompactionEngine } from '@deepseek-ai/dsh-compaction-basic'
 import type {
   BasicCompactionConfig,
   ModelCompactPolicyConfig,
 } from '@deepseek-ai/dsh-compaction-basic'
+import { BasicCompactionEngine } from '@deepseek-ai/dsh-compaction-basic'
+import Schema from '@deepseek-ai/schemastery'
 
 /** Tail share of the derived threshold used when no explicit share is configured. */
 export const DEFAULT_RETAIN_SHARE = 0.2
@@ -84,7 +84,12 @@ function stockRoutePolicy(policy: AbsoluteRoutePolicy): ModelCompactPolicyConfig
  * @returns the configuration the shipped engine can resolve.
  */
 export function toEngineConfig(config: AutoCompactConfig = {}): BasicCompactionConfig {
-  const { thresholdTokens: _thresholdTokens, retainShare: _retainShare, modelPolicies, ...stock } = config
+  const {
+    thresholdTokens: _thresholdTokens,
+    retainShare: _retainShare,
+    modelPolicies,
+    ...stock
+  } = config
   if (modelPolicies === undefined) return stock
   return { ...stock, modelPolicies: modelPolicies.map(stockRoutePolicy) }
 }

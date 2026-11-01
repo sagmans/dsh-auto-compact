@@ -53,10 +53,13 @@ const harnessEntries = (table) => Object.entries(table ?? {}).filter(([name]) =>
  */
 function parseVersion(value) {
   const match = VERSION_PATTERN.exec(value ?? '')
-  if (match === null) throw new Error('unsupported version: ' + String(value))
+  if (match === null) throw new Error(`unsupported version: ${String(value)}`)
   return {
     numbers: [Number(match[1]), Number(match[2]), Number(match[3])],
-    prerelease: match[4] === undefined ? [] : match[4].split('.').map(part => /^\d+$/u.test(part) ? Number(part) : part),
+    prerelease:
+      match[4] === undefined
+        ? []
+        : match[4].split('.').map((part) => (/^\d+$/u.test(part) ? Number(part) : part)),
   }
 }
 
@@ -116,19 +119,27 @@ function parseRange(declared) {
  */
 function satisfiesRange(alternatives, version, includePrerelease) {
   const parsed = parseVersion(version)
-  return alternatives.some(({ lower, upper }) => compareParsed(parsed, lower) >= 0 && compareParsed(parsed, upper) < 0
-    && (parsed.prerelease.length === 0 || includePrerelease
-      || [lower, upper].some(bound => bound.prerelease.length > 0 && sameTuple(bound, parsed))))
+  return alternatives.some(
+    ({ lower, upper }) =>
+      compareParsed(parsed, lower) >= 0 &&
+      compareParsed(parsed, upper) < 0 &&
+      (parsed.prerelease.length === 0 ||
+        includePrerelease ||
+        [lower, upper].some((bound) => bound.prerelease.length > 0 && sameTuple(bound, parsed))),
+  )
 }
 
 /** Spells a parsed version back the way the manifest writes it. */
 function formatVersion(version) {
-  return version.numbers.join('.') + (version.prerelease.length === 0 ? '' : '-' + version.prerelease.join('.'))
+  return (
+    version.numbers.join('.') +
+    (version.prerelease.length === 0 ? '' : `-${version.prerelease.join('.')}`)
+  )
 }
 
 const args = process.argv.slice(2)
 const option = (name) => {
-  const index = args.indexOf('--' + name)
+  const index = args.indexOf(`--${name}`)
   return index >= 0 ? args[index + 1] : undefined
 }
 const manifestPath = resolve(ROOT, option('manifest') ?? 'package.json')
@@ -139,15 +150,23 @@ const problems = []
 
 const alternatives = parseRange(compatibility)
 if (alternatives === undefined) {
-  problems.push('dsh.compatibility.dsh must declare ">=lower <upper" alternatives joined by "||", found ' + String(compatibility))
+  problems.push(
+    'dsh.compatibility.dsh must declare ">=lower <upper" alternatives joined by "||", found ' +
+      String(compatibility),
+  )
 } else {
   // A bare upper bound admits the next line's release candidates to the dsh
   // plugin gate, which then mounts the plugin on a line no gate has seen.
   for (const { upper } of alternatives) {
     if (upper.prerelease.length !== 1 || upper.prerelease[0] !== Number(LOWEST_PRERELEASE)) {
-      problems.push('dsh.compatibility.dsh bounds a line at <' + formatVersion(upper)
-        + ', which the dsh plugin gate reads as admitting that line\'s prereleases; bound it at <'
-        + upper.numbers.join('.') + '-' + LOWEST_PRERELEASE)
+      problems.push(
+        'dsh.compatibility.dsh bounds a line at <' +
+          formatVersion(upper) +
+          ", which the dsh plugin gate reads as admitting that line's prereleases; bound it at <" +
+          upper.numbers.join('.') +
+          '-' +
+          LOWEST_PRERELEASE,
+      )
     }
   }
 }
@@ -157,12 +176,19 @@ if (releases.length === 0) {
 if (alternatives !== undefined) {
   for (const release of releases) {
     if (!satisfiesRange(alternatives, release, true)) {
-      problems.push('verified release ' + release + ' lies outside the compatible range ' + compatibility)
+      problems.push(
+        `verified release ${release} lies outside the compatible range ${compatibility}`,
+      )
     } else if (!satisfiesRange(alternatives, release, false)) {
       // npm reads the same range for the peers and would refuse the host's own
       // release, resolving a second framework copy beside it.
-      problems.push('verified release ' + release + ' is a prerelease npm peer resolution refuses under '
-        + compatibility + '; give its X.Y.Z tuple an alternative of its own')
+      problems.push(
+        'verified release ' +
+          release +
+          ' is a prerelease npm peer resolution refuses under ' +
+          compatibility +
+          '; give its X.Y.Z tuple an alternative of its own',
+      )
     }
   }
 }
@@ -172,7 +198,14 @@ if (alternatives !== undefined) {
 // range would resolve the private duplicate the range exists to prevent.
 for (const [name, declared] of harnessEntries(manifest.peerDependencies)) {
   if (declared !== compatibility) {
-    problems.push('peer ' + name + ' declares ' + declared + ', not the compatible range ' + String(compatibility))
+    problems.push(
+      'peer ' +
+        name +
+        ' declares ' +
+        declared +
+        ', not the compatible range ' +
+        String(compatibility),
+    )
   }
 }
 
@@ -180,8 +213,15 @@ for (const [name, declared] of harnessEntries(manifest.peerDependencies)) {
 // verified release, the way the harness's own bundles pin.
 for (const [name, declared] of harnessEntries(manifest.dependencies)) {
   if (declared !== compatibility && !releases.includes(declared)) {
-    problems.push('mounted package ' + name + ' declares ' + declared
-      + ', which is neither the compatible range ' + String(compatibility) + ' nor a verified release')
+    problems.push(
+      'mounted package ' +
+        name +
+        ' declares ' +
+        declared +
+        ', which is neither the compatible range ' +
+        String(compatibility) +
+        ' nor a verified release',
+    )
   }
 }
 
@@ -190,7 +230,13 @@ for (const [name, declared] of Object.entries(manifest.dependencies ?? {})) {
   if (!String(declared).startsWith('npm:')) continue
   const aliased = /^npm:(.+)@([^@]+)$/u.exec(String(declared))
   if (aliased === null || !releases.includes(aliased[2])) {
-    problems.push('aliased dependency ' + name + ' declares ' + declared + ', whose version is not a verified release')
+    problems.push(
+      'aliased dependency ' +
+        name +
+        ' declares ' +
+        declared +
+        ', whose version is not a verified release',
+    )
   }
 }
 
@@ -200,36 +246,49 @@ if (compiled.length === 0) {
 }
 const compiledVersions = new Set(compiled.map(([, declared]) => declared))
 if (compiledVersions.size > 1) {
-  problems.push('the harness devDependencies name ' + compiledVersions.size + ' versions, not one')
+  problems.push(`the harness devDependencies name ${compiledVersions.size} versions, not one`)
 }
 for (const version of compiledVersions) {
   if (!releases.includes(version)) {
-    problems.push('the harness devDependencies compile against ' + version + ', which is not a verified release')
+    problems.push(
+      'the harness devDependencies compile against ' +
+        version +
+        ', which is not a verified release',
+    )
   }
 }
 
 if (args.includes('--check-registry')) {
   const response = await fetch('https://registry.npmjs.org/@deepseek-ai%2Fdsh')
   if (!response.ok) {
-    problems.push('the registry read failed with HTTP ' + response.status)
+    problems.push(`the registry read failed with HTTP ${response.status}`)
   } else {
     const metadata = await response.json()
     const latest = metadata['dist-tags']?.latest
     if (typeof latest !== 'string') {
       problems.push('the registry answered no latest dist-tag')
     } else if (!releases.includes(latest)) {
-      problems.push('the harness publishes ' + latest + ' as latest, which is not a verified release')
-      console.error('harness-matrix: add it to dsh.compatibility.dshReleases, raise the harness devDependencies and mounted packages, then dogfood; RELEASE.md owns the procedure')
+      problems.push(`the harness publishes ${latest} as latest, which is not a verified release`)
+      console.error(
+        'harness-matrix: add it to dsh.compatibility.dshReleases, raise the harness devDependencies and mounted packages, then dogfood; RELEASE.md owns the procedure',
+      )
     } else {
-      console.log('harness-matrix: registry latest ' + latest + ' is verified')
+      console.log(`harness-matrix: registry latest ${latest} is verified`)
     }
   }
 }
 
 if (problems.length > 0) {
   console.error('harness-matrix: the matrix is inconsistent')
-  for (const problem of problems) console.error('  - ' + problem)
+  for (const problem of problems) console.error(`  - ${problem}`)
   process.exit(1)
 }
-console.log('harness-matrix: ok (' + releases.length + ' verified, compiled '
-  + [...compiledVersions].join(', ') + ', peers ' + String(compatibility) + ')')
+console.log(
+  'harness-matrix: ok (' +
+    releases.length +
+    ' verified, compiled ' +
+    [...compiledVersions].join(', ') +
+    ', peers ' +
+    String(compatibility) +
+    ')',
+)

@@ -10,8 +10,9 @@ Work in a feature worktree and land through a reviewed PR; never push directly
 to `main`. Use scoped Conventional Commits, signed and DCO-signed. Every PR
 adds its `CHANGELOG.md` entry under `## [Unreleased]`.
 
-`pnpm run check` runs typecheck, unit tests, build, built-output tests,
-release-helper guards, tarball smoke, and the harness matrix guard.
+`pnpm run check` runs the Biome lint and format check, typecheck, unit tests,
+build, built-output tests, release-helper guards, tarball smoke, and the harness
+matrix guard.
 `pnpm test:release` uses synthetic CLIs and performs no registry publication.
 No credentials belong in the repository. Test profiles use a scratch
 `DSH_HOME`, never the developer's live home.
@@ -57,4 +58,4 @@ with `DRY_RUN=1`.
 
 ## Git hooks
 
-Checks run in `.githooks/`, not in push/PR CI. Run `scripts/setup-hooks` after cloning. All checks must pass before you push. Never use `--no-verify`. `pre-push`: `npm audit signatures`, `pnpm run check`, `pnpm audit --audit-level high`.
+Checks run in `.githooks/`, not in push/PR CI. Run `scripts/setup-hooks` after cloning. All checks must pass before you push. Never use `--no-verify`. `pre-commit`: Biome on the staged files (`pnpm run lint:fix` repairs most findings). `pre-push`: `npm audit signatures`, `pnpm run check`, `pnpm audit --audit-level high`.

@@ -8,8 +8,8 @@ import { describe, it } from 'node:test'
 
 import { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
-import LlmRuntime, { LlmAdapter, createMessage, createUserMessage } from '@deepseek-ai/dsh-llm'
 import type { LlmResolvedModelInfo, StreamChunk } from '@deepseek-ai/dsh-llm'
+import LlmRuntime, { createMessage, createUserMessage, LlmAdapter } from '@deepseek-ai/dsh-llm'
 import { Session, SessionId } from '@deepseek-ai/dsh-session'
 
 import { AutoCompactEngine } from '../src/index.ts'
@@ -33,7 +33,7 @@ class SummaryAdapter extends LlmAdapter {
     return Promise.resolve({ provider, id: model, name: model, context: { contextWindow: WINDOW } })
   }
 
-  override async * stream(): AsyncIterable<StreamChunk> {
+  override async *stream(): AsyncIterable<StreamChunk> {
     yield { type: 'block-start', index: 0, blockType: 'text' }
     yield { type: 'text-delta', index: 0, text: SUMMARY }
     yield { type: 'block-end', index: 0, block: { type: 'text', text: SUMMARY } }
@@ -48,7 +48,11 @@ class SummaryAdapter extends LlmAdapter {
 function surfaceMeter() {
   return {
     measure(session: Session) {
-      const nodes = session.surface.nodes.map(seq => ({ seq, tokens: NODE_TOKENS, heuristicTokens: NODE_TOKENS }))
+      const nodes = session.surface.nodes.map((seq) => ({
+        seq,
+        tokens: NODE_TOKENS,
+        heuristicTokens: NODE_TOKENS,
+      }))
       const totalTokens = nodes.length * NODE_TOKENS
       return {
         logRevision: 0,
@@ -68,10 +72,14 @@ function conversation(turns: number): Session {
   const session = Session.create(SessionId(`integration-${turns}`))
   for (let turn = 1; turn <= turns; turn += 1) {
     session.append('turn/start', { turn })
-    session.append('user/message', createUserMessage({
-      content: [{ type: 'text', text: `turn ${turn} prompt` }],
-      source: { kind: 'user' },
-    }), { surfaceOp: 'append' })
+    session.append(
+      'user/message',
+      createUserMessage({
+        content: [{ type: 'text', text: `turn ${turn} prompt` }],
+        source: { kind: 'user' },
+      }),
+      { surfaceOp: 'append' },
+    )
     session.append('step/start', { turn, step: 1 })
     if (turn === 1) {
       session.append('request/header', {
@@ -79,16 +87,20 @@ function conversation(turns: number): Session {
         reason: 'initial',
       })
     }
-    session.append('assistant/message', {
-      stream: [],
-      turn,
-      step: 1,
-      message: createMessage({
-        role: 'assistant',
-        content: [{ type: 'text', text: `turn ${turn} reply` }],
-        source: { kind: 'model', ...{ provider: PROVIDER, model: MODEL } },
-      }),
-    }, { surfaceOp: 'append' })
+    session.append(
+      'assistant/message',
+      {
+        stream: [],
+        turn,
+        step: 1,
+        message: createMessage({
+          role: 'assistant',
+          content: [{ type: 'text', text: `turn ${turn} reply` }],
+          source: { kind: 'model', ...{ provider: PROVIDER, model: MODEL } },
+        }),
+      },
+      { surfaceOp: 'append' },
+    )
     session.append('step/end', { turn, step: 1 })
     session.append('turn/end', { turn, reason: { kind: 'completed' } })
   }
