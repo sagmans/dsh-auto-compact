@@ -10,38 +10,95 @@ carry a breaking change, and a patch carries only fixes.
 
 ### Compatibility
 
-- Verified against DeepSeek Harness `0.2.1-rc.2` and `0.2.1-rc.3`. The harness `devDependencies` compile against `0.2.1-rc.3`, which ships the same cordis `4.0.5` and schemastery `3.18.5` as `0.2.1-rc.2`. The supported range already admits `0.2.1-rc.3`, so it and the peers do not change. The published package is unchanged.
-- The supported line keeps its span, from `0.1.5-rc.1` up to `0.3.0`, but is now spelled as one alternative per line, each bounded at `-0`. npm refused the `0.1.7`, `0.2.0`, and `0.2.1` prerelease hosts under the single `>=0.1.5-rc.1 <0.3.0` span and resolved a second framework copy. The harness also read that bare `<0.3.0` as admitting `0.3.0` release candidates.
-- The matrix guard rejects a range either reader would misread, so a later bump cannot bring the gap back.
-- The cordis and schemastery peers stop below their next minor: `>=4.0.2 <4.1.0-0` and `>=3.18.2 <3.19.0-0`. The caret ranges also admitted `4.1` and `3.19`, which no verified harness ships.
+- Verified against DeepSeek Harness `0.2.1-rc.2` and `0.2.1-rc.3`. The harness
+  `devDependencies` compile against `0.2.1-rc.3`, which ships the same cordis
+  `4.0.5` and schemastery `3.18.5` as `0.2.1-rc.2`. The supported range already
+  admits `0.2.1-rc.3`, so it and the peers do not change. The published package
+  is unchanged.
+- The supported line keeps its span, from `0.1.5-rc.1` up to `0.3.0`, but is now
+  spelled as one alternative per line, each bounded at `-0`. npm refused the
+  `0.1.7`, `0.2.0`, and `0.2.1` prerelease hosts under the single
+  `>=0.1.5-rc.1 <0.3.0` span and resolved a second framework copy. The harness
+  also read that bare `<0.3.0` as admitting `0.3.0` release candidates.
+- The matrix guard rejects a range either reader would misread, so a later bump
+  cannot bring the gap back.
+- The cordis and schemastery peers stop below their next minor:
+  `>=4.0.2 <4.1.0-0` and `>=3.18.2 <3.19.0-0`. The caret ranges also admitted
+  `4.1` and `3.19`, which no verified harness ships.
 
 ### Changed
 
-- Development checks lint and format the code with Biome `2.6.3`: the pre-commit hook checks the staged files, and `pnpm run check` checks the whole tree on every push. The code was reformatted once to the existing style. The published modules behave the same.
-- Every release now waits out the one-week release-age window. The temporary exemptions for the 0.2.1-rc.2 harness set, its framework releases, pi-ai `1.3.0`, and `fast-uri` `3.1.9` are removed, because each entry has aged past the window. The published package is unchanged.
-- Development tooling moves to `@types/node` 26.6.5 and `tsx` 4.23.15. The published package is unchanged.
-- Development builds use TypeScript 7.0.2. The published modules behave the same; the compiler now writes rewritten relative import paths with single quotes.
-- A signed `v*` tag push by a repository admin now publishes automatically through npm OIDC trusted publishing. The admin-only tag ruleset makes that push the release approval, so the `npm-release` environment has no required reviewer. The GitHub setup helper creates and accepts that environment, and reports a re-added reviewer as a conflict. Its `REVIEWER` setting is now `RELEASE_OWNER`, because the account remains a direct bypass actor on the tag ruleset.
+- Development checks lint and format the code with Biome `2.6.3`: the pre-commit
+  hook checks the staged files, and `pnpm run check` checks the whole tree on
+  every push. The code was reformatted once to the existing style. The published
+  modules behave the same.
+- Every release now waits out the one-week release-age window. The temporary
+  exemptions for the 0.2.1-rc.2 harness set, its framework releases, pi-ai
+  `1.3.0`, and `fast-uri` `3.1.9` are removed, because each entry has aged past
+  the window. The published package is unchanged.
+- Development tooling moves to `@types/node` 26.6.5 and `tsx` 4.23.15. The
+  published package is unchanged.
+- Development builds use TypeScript 7.0.2. The published modules behave the
+  same; the compiler now writes rewritten relative import paths with single
+  quotes.
+- A signed `v*` tag push by a repository admin now publishes automatically
+  through npm OIDC trusted publishing. The admin-only tag ruleset makes that
+  push the release approval, so the `npm-release` environment has no required
+  reviewer. The GitHub setup helper creates and accepts that environment, and
+  reports a re-added reviewer as a conflict. Its `REVIEWER` setting is now
+  `RELEASE_OWNER`, because the account remains a direct bypass actor on the tag
+  ruleset.
 
 ### Security
 
-- Development installs resolve `@modelcontextprotocol/client` `2.3.1`, `fflate` `0.8.3`, and `fast-uri` `3.1.8` through scoped `pnpm-workspace.yaml` overrides, clearing GHSA-6prh-2h8m-c8cw (HTTP transports and OAuth requests followed cross-origin redirects and re-sent custom headers and request bodies), GHSA-px8p-9vwx-vf98 (a malformed ZIP64 archive sends `unzipSync` into an infinite loop), and GHSA-hrr3-gc8f-f4qj (a percent-encoded host escapes case normalization). The published package is unchanged.
-- Development installs resolve `zod` `4.6.7`, `undici` `8.12.2`, and `fast-uri` `3.1.9` through scoped `pnpm-workspace.yaml` overrides, clearing GHSA-mrhx-c7xc-m3w5 (oversized constrained collections exhaust memory during validation), GHSA-xjj6-f33q-929c, GHSA-4qv8-2p9j-2685, and GHSA-f72v-6w45-q472 (denial of service through stacked content encodings or an unbounded EventSource buffer, and an integrity-check bypass), and GHSA-333x-w4r6-6crp, GHSA-w74x-v6f9-j3xg, GHSA-wjr9-j795-jxcr, and GHSA-xhq7-xmqj-769h (scheme injection, scheme spoofing, host confusion, and path equivalence in URI handling). The harness pins `zod` `4.4.3` and `undici` `8.11.2` exactly, so the overrides move them up a minor within the same major. `fast-uri` `3.1.9` is exempt from the release-age window until it ages out. The published package is unchanged.
-- The daily harness-matrix job and both release jobs run on Node.js `24.22.1` (was the runner's floating `24`), the 24.x security release that fixes CVE-2026-111497 (Brotli decoder out-of-bounds write) and CVE-2026-105483 and CVE-2026-106069 (TLS hostname check bypass). An exact pin means the release can no longer verify or publish on an unpatched cached runtime. Checks and tests pass on `24.22.1`. The published package is unchanged.
+- Development installs resolve `@modelcontextprotocol/client` `2.3.1`, `fflate`
+  `0.8.3`, and `fast-uri` `3.1.8` through scoped `pnpm-workspace.yaml`
+  overrides, clearing GHSA-6prh-2h8m-c8cw (HTTP transports and OAuth requests
+  followed cross-origin redirects and re-sent custom headers and request
+  bodies), GHSA-px8p-9vwx-vf98 (a malformed ZIP64 archive sends `unzipSync` into
+  an infinite loop), and GHSA-hrr3-gc8f-f4qj (a percent-encoded host escapes
+  case normalization). The published package is unchanged.
+- Development installs resolve `zod` `4.6.7`, `undici` `8.12.2`, and `fast-uri`
+  `3.1.9` through scoped `pnpm-workspace.yaml` overrides, clearing
+  GHSA-mrhx-c7xc-m3w5 (oversized constrained collections exhaust memory during
+  validation), GHSA-xjj6-f33q-929c, GHSA-4qv8-2p9j-2685, and GHSA-f72v-6w45-q472
+  (denial of service through stacked content encodings or an unbounded
+  EventSource buffer, and an integrity-check bypass), and GHSA-333x-w4r6-6crp,
+  GHSA-w74x-v6f9-j3xg, GHSA-wjr9-j795-jxcr, and GHSA-xhq7-xmqj-769h (scheme
+  injection, scheme spoofing, host confusion, and path equivalence in URI
+  handling). The harness pins `zod` `4.4.3` and `undici` `8.11.2` exactly, so
+  the overrides move them up a minor within the same major. `fast-uri` `3.1.9`
+  is exempt from the release-age window until it ages out. The published package
+  is unchanged.
+- The daily harness-matrix job and both release jobs run on Node.js `24.22.1`
+  (was the runner's floating `24`), the 24.x security release that fixes
+  CVE-2026-111497 (Brotli decoder out-of-bounds write) and CVE-2026-105483 and
+  CVE-2026-106069 (TLS hostname check bypass). An exact pin means the release
+  can no longer verify or publish on an unpatched cached runtime. Checks and
+  tests pass on `24.22.1`. The published package is unchanged.
 
 ## [0.2.1] - 2026-10-14
 
 ### Compatibility
 
-- Support Node.js 22, 24 and 26: `engines.node` is now `>=22.19.0` (was `^24.0.0`, which warned on Node 22 and 26), and typecheck plus tests pass on Node 22.19.0, 24.21.0 and 26.11.1. Development types move to `@types/node` 26.6.4.
+- Support Node.js 22, 24 and 26: `engines.node` is now `>=22.19.0` (was
+  `^24.0.0`, which warned on Node 22 and 26), and typecheck plus tests pass on
+  Node 22.19.0, 24.21.0 and 26.11.1. Development types move to `@types/node`
+  26.6.4.
 
 ### Security
 
-- Development installs resolve patched transitive dependencies through scoped `pnpm-workspace.yaml` overrides, clearing GHSA-6qxp-vccf-f47h (`@modelcontextprotocol/client`, `@modelcontextprotocol/sdk`), GHSA-jqcg-44mw-7w3h (`proxy-addr`), GHSA-ch52-4w7c-c8xp (`http-cache-semantics`), and GHSA-wq5f-xc86-pv6w (`sharp`) from the audit gate. The published package is unchanged.
+- Development installs resolve patched transitive dependencies through scoped
+  `pnpm-workspace.yaml` overrides, clearing GHSA-6qxp-vccf-f47h
+  (`@modelcontextprotocol/client`, `@modelcontextprotocol/sdk`),
+  GHSA-jqcg-44mw-7w3h (`proxy-addr`), GHSA-ch52-4w7c-c8xp
+  (`http-cache-semantics`), and GHSA-wq5f-xc86-pv6w (`sharp`) from the audit
+  gate. The published package is unchanged.
 
 ### Changed
 
-- Dependabot now proposes weekly updates for the SHA-pinned GitHub Actions, so CI pins keep receiving security fixes without manual tracking.
+- Dependabot now proposes weekly updates for the SHA-pinned GitHub Actions, so
+  CI pins keep receiving security fixes without manual tracking.
 - Agent guidance now requires signed version tags, matching GitHub releases,
   publication approval, and npm readback so published versions keep a complete
   source and release record without accidental republication.
@@ -83,17 +140,18 @@ carry a breaking change, and a patch carries only fixes.
 
 ### Fixed
 
-- The release helper answers npm 12's metadata shape and npm's browser prompt, so
-  every OTP-gated action works on a setup [RELEASE.md](RELEASE.md) calls
+- The release helper answers npm 12's metadata shape and npm's browser prompt,
+  so every OTP-gated action works on a setup [RELEASE.md](RELEASE.md) calls
   supported. A version-qualified view answers with a one-element list on npm 12
-  where npm 11 answers with the object itself, and the metadata check demanded an
-  object: a supported npm was refused outright, and the failure read as corrupt
-  registry data rather than a shape difference. The PTY that carries npm's
-  authentication URL was opened and never written to, while npm prints that URL
-  and then waits for a keypress before it polls for approval, so the read stalled
-  until the window closed and the operator was never asked. The helper and its
-  guards are shared with the sibling plugin packages, so this carries the same
-  fix they do rather than a second implementation that would drift from them.
+  where npm 11 answers with the object itself, and the metadata check demanded
+  an object: a supported npm was refused outright, and the failure read as
+  corrupt registry data rather than a shape difference. The PTY that carries
+  npm's authentication URL was opened and never written to, while npm prints
+  that URL and then waits for a keypress before it polls for approval, so the
+  read stalled until the window closed and the operator was never asked. The
+  helper and its guards are shared with the sibling plugin packages, so this
+  carries the same fix they do rather than a second implementation that would
+  drift from them.
 
 [Unreleased]: https://github.com/sagmans/dsh-auto-compact/compare/v0.2.1...HEAD
 [0.2.1]: https://github.com/sagmans/dsh-auto-compact/compare/v0.2.0...v0.2.1
