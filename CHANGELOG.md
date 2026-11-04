@@ -68,6 +68,10 @@ carry a breaking change, and a patch carries only fixes.
 
 ### Security
 
+- The release workflow no longer restores a dependency cache. A cache that
+  another run could write must not feed the artefact a tag publishes. The
+  published package is unchanged.
+
 - Development installs resolve `@modelcontextprotocol/client` `2.3.1`, `fflate`
   `0.8.3`, and `fast-uri` `3.1.8` through scoped `pnpm-workspace.yaml`
   overrides, clearing GHSA-6prh-2h8m-c8cw (HTTP transports and OAuth requests
