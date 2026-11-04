@@ -8,7 +8,9 @@
  * disagree is how a profile ends up mounting a copy from a line the plugin was
  * never proven against. The default mode checks that matrix offline;
  * --check-registry also reads the registry's latest dist-tag and fails when the
- * harness has moved past the verified list.
+ * harness has moved past the verified list. A release still inside the
+ * release-age window only gets a notice: the quarantine refuses to install it,
+ * so no one can verify it yet, and failing would stop every push for a week.
  *
  * The range is read twice, because two readers apply it: the dsh plugin gate
  * (`evaluatePluginCompatibility` in `@deepseek-ai/dsh-app-boot`) admits
@@ -44,6 +46,20 @@ const ALTERNATIVE_SEPARATOR = '||'
  * `<0.3.0-0` does not, because `0` is the lowest prerelease semver orders.
  */
 const LOWEST_PRERELEASE = '0'
+
+/** The harness packument: dist-tags and publish times. */
+const REGISTRY_URL = 'https://registry.npmjs.org/@deepseek-ai%2Fdsh'
+
+/** A hung registry read must fail the check, not stall the push hook. */
+const REGISTRY_TIMEOUT_MS = 30_000
+
+/** The workspace file that owns the quarantine this check must agree with. */
+const WORKSPACE_FILE = 'pnpm-workspace.yaml'
+
+/** The quarantine setting, in minutes, as pnpm reads it from the workspace file. */
+const RELEASE_AGE_PATTERN = /^minimumReleaseAge:\s*(\d+)\s*$/mu
+
+const MS_PER_MINUTE = 60_000
 
 const harnessEntries = (table) => Object.entries(table ?? {}).filter(([name]) => HARNESS.test(name))
 
@@ -258,23 +274,59 @@ for (const version of compiledVersions) {
   }
 }
 
-if (args.includes('--check-registry')) {
-  const response = await fetch('https://registry.npmjs.org/@deepseek-ai%2Fdsh')
+/**
+ * The end of the release-age window for a publish time, or undefined when the
+ * quarantine or the time cannot be read: the caller treats that as a failure,
+ * because an unread window must never excuse an unverified release.
+ */
+function releaseAgeEnd(publishedAt) {
+  const age = RELEASE_AGE_PATTERN.exec(readFileSync(resolve(ROOT, WORKSPACE_FILE), 'utf8'))
+  const published = Date.parse(publishedAt ?? '')
+  if (age === null || Number.isNaN(published)) return undefined
+  return published + Number(age[1]) * MS_PER_MINUTE
+}
+
+/** Records a problem unless the registry's latest is verified or still quarantined. */
+async function checkRegistry() {
+  const response = await fetch(REGISTRY_URL, { signal: AbortSignal.timeout(REGISTRY_TIMEOUT_MS) })
   if (!response.ok) {
     problems.push(`the registry read failed with HTTP ${response.status}`)
+    return
+  }
+  const metadata = await response.json()
+  const latest = metadata['dist-tags']?.latest
+  if (typeof latest !== 'string') {
+    problems.push('the registry answered no latest dist-tag')
+    return
+  }
+  if (releases.includes(latest)) {
+    console.log(`harness-matrix: registry latest ${latest} is verified`)
+    return
+  }
+  const ageEnd = releaseAgeEnd(metadata.time?.[latest])
+  if (ageEnd === undefined) {
+    problems.push(`cannot read the release-age window for ${latest}`)
+  } else if (Date.now() < ageEnd) {
+    console.log(
+      `harness-matrix: registry latest ${latest} is not verified; ` +
+        `the bump is due when its release-age window ends at ${new Date(ageEnd).toISOString()}`,
+    )
   } else {
-    const metadata = await response.json()
-    const latest = metadata['dist-tags']?.latest
-    if (typeof latest !== 'string') {
-      problems.push('the registry answered no latest dist-tag')
-    } else if (!releases.includes(latest)) {
-      problems.push(`the harness publishes ${latest} as latest, which is not a verified release`)
-      console.error(
-        'harness-matrix: add it to dsh.compatibility.dshReleases, raise the harness devDependencies and mounted packages, then dogfood; RELEASE.md owns the procedure',
-      )
-    } else {
-      console.log(`harness-matrix: registry latest ${latest} is verified`)
-    }
+    problems.push(`the harness publishes ${latest} as latest, which is not a verified release`)
+    console.error(
+      'harness-matrix: add it to dsh.compatibility.dshReleases, raise the harness devDependencies and mounted packages, then dogfood; RELEASE.md owns the procedure',
+    )
+  }
+}
+
+if (args.includes('--check-registry')) {
+  try {
+    await checkRegistry()
+  } catch (error) {
+    // A failed read stays a failure, reported once with its cause in one line.
+    problems.push(
+      `the registry read of ${REGISTRY_URL} failed: ${error?.cause?.code ?? error?.message ?? error}`,
+    )
   }
 }
 

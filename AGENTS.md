@@ -65,7 +65,9 @@ Checks run in `.githooks/`, not in push/PR CI. Run `scripts/setup-hooks` after
 cloning. All checks must pass before you push. Never use `--no-verify`.
 `pre-commit`: Biome on the staged files (`pnpm run lint:fix` repairs most
 findings). `pre-push`: `npm audit signatures`, `pnpm run check`,
-`pnpm audit --audit-level high`.
+`pnpm audit --audit-level high`, and
+`node tools/harness-matrix.mjs --check-registry`, which blocks the push when
+the latest harness release is not verified and has left the release-age window.
 
 Commit messages follow `.githooks/GIT_CONVENTION.md`, which `commit-msg` and
 `pre-push` enforce. The generic checks need gitleaks, osv-scanner, semgrep,

@@ -1,6 +1,8 @@
 #!/bin/sh
-# Runs the full check suite and the audits hosted CI ran on every push, on
-# each pushed commit. Telemetry stays off for every harness the tests start.
+# Runs the full check suite, the audits, and the harness registry check on
+# each pushed commit. No hosted workflow runs checks for this repository, so
+# this hook is the only gate. Telemetry stays off for every harness the tests
+# start.
 set -eu
 DSH_TELEMETRY_DISABLED=1
 export DSH_TELEMETRY_DISABLED
@@ -16,6 +18,11 @@ checks() {
 	run_step 'npm audit signatures' "$NETWORK_TIMEOUT_SECONDS" npm audit signatures || return 1
 	run_step 'pnpm run check' "$CHECK_TIMEOUT_SECONDS" pnpm run check || return 1
 	run_step 'pnpm audit' "$NETWORK_TIMEOUT_SECONDS" pnpm audit --audit-level high || return 1
+	# Blocks the push once the harness serves a `latest` that left the release-age
+	# window and that no gate verified, so the plugin never stays behind the
+	# release users install. A failed registry read also blocks: an unread
+	# registry is not a verified one.
+	run_step 'harness registry check' "$NETWORK_TIMEOUT_SECONDS" node tools/harness-matrix.mjs --check-registry || return 1
 }
 
 # Helpers (staged_git, pushed_shas, at_sha, darwin_only) from .githooks/lib.

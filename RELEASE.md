@@ -23,9 +23,11 @@ both readers below, every harness peer declares the range, the harness
 `devDependencies` name exactly one verified release, and any mounted package or
 aliased install names a verified release — and `pnpm run check` runs it on every
 change.
-[`.github/workflows/harness-matrix.yml`](.github/workflows/harness-matrix.yml)
-runs the same tool with `--check-registry` daily and fails when
-`@deepseek-ai/dsh@latest` is not a verified release.
+The `pre-push` hook runs the same tool with `--check-registry` on every push and
+blocks the push when `@deepseek-ai/dsh@latest` is not a verified release and has
+left the release-age window. Inside the window the release cannot install, so
+the tool only prints the time the bump is due. No hosted workflow runs this
+check: all checks run locally behind the hooks.
 
 The range has two readers, and it must satisfy both:
 
@@ -44,7 +46,7 @@ A package mounted from `dependencies` answers to the same strict rule: a row
 that serves one line names that release, and an aliased install names one, the
 way the harness's own bundles pin.
 
-That failing scheduled run is the matrix bump, and it is a release-sized change:
+That blocked push is the matrix bump, and it is a release-sized change:
 
 1. Run `pnpm run matrix -- --check-registry` to read the release the harness now
    serves as `latest`.

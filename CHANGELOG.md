@@ -10,6 +10,12 @@ carry a breaking change, and a patch carries only fixes.
 
 ### Compatibility
 
+- The harness registry check moves from a scheduled hosted workflow to the
+  `pre-push` hook. A push is blocked when `@deepseek-ai/dsh@latest` is not a
+  verified release and has left the release-age window, so no unverified harness
+  line goes unnoticed. All checks now run locally behind the hooks. The published
+  package is unchanged.
+
 - Verified against DeepSeek Harness `0.2.1-rc.2` and `0.2.1-rc.3`. The harness
   `devDependencies` compile against `0.2.1-rc.3`, which ships the same cordis
   `4.0.5` and schemastery `3.18.5` as `0.2.1-rc.2`. The supported range already
