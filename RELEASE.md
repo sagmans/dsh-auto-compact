@@ -36,7 +36,8 @@ The range has two readers, and it must satisfy both:
   <0.3.0` reaches `0.1.5-rc.3` and never `0.2.0-rc.2`; a host on that line then
   resolves a second framework copy beside its own. So each line gets an
   alternative of its own, joined by `||`: `>=0.1.5-rc.1 <0.1.6-0 || >=0.1.6-0
-  <0.1.7-0 || >=0.1.7-0 <0.2.0-0 || >=0.2.0-0 <0.2.1-0 || >=0.2.1-0 <0.3.0-0`.
+  <0.1.7-0 || >=0.1.7-0 <0.2.0-0 || >=0.2.0-0 <0.2.1-0 || >=0.2.1-0 <0.2.2-0
+  || >=0.2.2-0 <0.3.0-0`.
 - **The dsh plugin gate.** The harness reads the same peers with
   `includePrerelease` before it mounts the plugin, and that reading admits
   prereleases anywhere inside a range. A bare `<0.3.0` admits `0.3.0-rc.1`
