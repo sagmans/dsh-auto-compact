@@ -48,6 +48,8 @@ carry a breaking change, and a patch carries only fixes.
   reports a re-added reviewer as a conflict. Its `REVIEWER` setting is now
   `RELEASE_OWNER`, because the account remains a direct bypass actor on the tag
   ruleset.
+- `AGENTS.md` states the trunk-based delivery flow: changes land by a signed
+  push to `main`, not through a pull request.
 
 ### Security
 

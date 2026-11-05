@@ -6,9 +6,11 @@ controls: [RELEASE.md](RELEASE.md).
 
 ## Contributing
 
-Work in a feature worktree and land through a reviewed PR; never push directly
-to `main`. Use scoped Conventional Commits, signed and DCO-signed. Every PR
-adds its `CHANGELOG.md` entry under `## [Unreleased]`.
+Delivery is trunk-based: commit on `main` and push `main`, with no feature
+branch or pull request unless the maintainer asks for one. The local hooks are
+the gate before `origin`. Rebase on `origin/main` before each push, and never
+force-push `main`. Use scoped Conventional Commits, signed and DCO-signed. Every
+change adds its `CHANGELOG.md` entry under `## [Unreleased]`.
 
 `pnpm run check` runs the Biome lint and format check, typecheck, unit tests,
 build, built-output tests, release-helper guards, tarball smoke, and the harness
@@ -20,15 +22,16 @@ No credentials belong in the repository. Test profiles use a scratch
 ## Release and publication
 
 Read [RELEASE.md](RELEASE.md) before preparing a version, pushing a release tag,
-publishing, or repairing a release record. Shipping a documentation or code PR
-is not approval to publish. Require explicit maintainer approval for publication
-and each remote release action; never publish on your own initiative.
+publishing, or repairing a release record. Pushing a documentation or code
+change is not approval to publish. Require explicit maintainer approval for
+publication and each remote release action; never publish on your own
+initiative.
 
-1. Land the candidate through a reviewed PR to `main`. Match `package.json`
-   `version`, the `vX.Y.Z` tag, and the versioned `CHANGELOG.md` entry.
-   Pass the release gates in `RELEASE.md` on the exact merged commit.
+1. Land the candidate on `main`. Match `package.json` `version`, the `vX.Y.Z`
+   tag, and the versioned `CHANGELOG.md` entry.
+   Pass the release gates in `RELEASE.md` on the exact pushed commit.
 2. Create an annotated, signed tag on that commit:
-   `git tag -s -a "vX.Y.Z" -m "vX.Y.Z" <merged-sha>`.
+   `git tag -s -a "vX.Y.Z" -m "vX.Y.Z" <candidate-sha>`.
    Verify it with `git verify-tag "vX.Y.Z"`. Never use a lightweight or unsigned
    release tag; require GitHub to verify the signature after the approved push.
 3. Push only that tag with `git push origin "vX.Y.Z"` after approval.
