@@ -177,8 +177,8 @@ source change.
 Published artefacts carry a provenance attestation, which only a CI provider can
 issue, so releases ship from the tag workflow rather than a laptop.
 
-1. Bump `version` in `package.json`, land it on `main` through a reviewed PR,
-   and wait for CI to pass on the merged SHA.
+1. Bump `version` in `package.json`, and push it to `main` after the local hooks
+   pass.
 2. Tag that SHA with a signed tag and push it. The tag ruleset admits repository
    admins only.
 3. [`.github/workflows/release.yml`](.github/workflows/release.yml) re-runs the
