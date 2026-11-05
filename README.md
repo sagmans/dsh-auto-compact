@@ -5,17 +5,29 @@ shipped window-ratio trigger. It condenses at a fixed price on large-window
 models, while every model whose window is already smaller than that budget keeps
 its proportional trigger.
 
-```
+```text
 trigger = min(thresholdTokens, floor(contextWindow x thresholdRatio))
 ```
 
-Releases publish to npm as [`@sagmans/dsh-auto-compact`](https://www.npmjs.com/package/@sagmans/dsh-auto-compact); every release carries a provenance attestation built by the tag workflow, and no npm token is stored. The code is [MIT licensed](LICENSE).
+Releases publish to npm as
+[`@sagmans/dsh-auto-compact`](https://www.npmjs.com/package/@sagmans/dsh-auto-compact);
+every release carries a provenance attestation built by the tag workflow, and no
+npm token is stored. The code is [MIT licensed](LICENSE).
 
 ## Requirements
 
 - Node.js 24 LTS (verified with 24.22.1).
 - pnpm 11.21.0 for this repository.
-- A DeepSeek Harness install on the supported line: `0.1.5-rc.1` up to, but not including, `0.3.0` and its prereleases, verified against `0.1.5-rc.2`, `0.1.5-rc.3`, `0.1.7-rc.2`, `0.2.0-rc.2`, `0.2.1-rc.2`, and `0.2.1-rc.3`. The range in `package.json` spells one `>=lower <upper-0` alternative per line, so npm and the harness read it the same way (see [RELEASE.md](RELEASE.md#harness-matrix)). The plugin declares that range as a peer dependency, so a profile resolves the harness copy it already has rather than a second framework instance, and `dsh.compatibility.dshReleases` names the releases that passed the gates — the harness refuses an install whose peer range does not cover it.
+- A DeepSeek Harness install on the supported line: `0.1.5-rc.1` up to, but not
+  including, `0.3.0` and its prereleases, verified against `0.1.5-rc.2`,
+  `0.1.5-rc.3`, `0.1.7-rc.2`, `0.2.0-rc.2`, `0.2.1-rc.2`, and `0.2.1-rc.3`. The
+  range in `package.json` spells one `>=lower <upper-0` alternative per line, so
+  npm and the harness read it the same way (see
+  [RELEASE.md](RELEASE.md#harness-matrix)). The plugin declares that range as a
+  peer dependency, so a profile resolves the harness copy it already has rather
+  than a second framework instance, and `dsh.compatibility.dshReleases` names
+  the releases that passed the gates — the harness refuses an install whose peer
+  range does not cover it.
 
 ## Configuration
 
@@ -23,7 +35,7 @@ Every shipped setting keeps its meaning; this backend adds two fields and one
 per-route override.
 
 | Field | Default | Meaning |
-|---|---|---|
+| --- | --- | --- |
 | `thresholdTokens` | — | Absolute trigger budget in tokens. Omitted means the ratio trigger alone. |
 | `retainShare` | `0.2` | Retained tail as a fraction of the derived trigger, applied only when the budget is what triggers condensation. |
 | `modelPolicies[].thresholdTokens` | — | Budget for one exact `provider`/`model` route. |
@@ -43,7 +55,7 @@ per-route override.
 ## Trigger examples
 
 | Context window | `thresholdRatio` | `thresholdTokens` | Trigger |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1,000,000 | 0.8 | 200,000 | **200,000** (budget) |
 | 262,144 | 0.8 | 200,000 | **200,000** (budget) |
 | 131,072 | 0.8 | 200,000 | 104,857 (ratio) |
@@ -121,7 +133,7 @@ the same task, the same route, and a reported window of 1,000,000 tokens, where
 the shipped ratio trigger is 800,000:
 
 | Run | `thresholdTokens` | Compaction events |
-|---|---|---|
+| --- | --- | --- |
 | A | 8,000 | 4 starts, 3 summaries, 1 prune |
 | B | — | none |
 
@@ -162,13 +174,23 @@ source change.
 
 ## Releasing
 
-Published artefacts carry a provenance attestation, which only a CI provider can issue, so releases ship from the tag workflow rather than a laptop.
+Published artefacts carry a provenance attestation, which only a CI provider can
+issue, so releases ship from the tag workflow rather than a laptop.
 
-1. Bump `version` in `package.json`, land it on `main` through a reviewed PR, and wait for CI to pass on the merged SHA.
-2. Tag that SHA with a signed tag and push it. The tag ruleset admits repository admins only.
-3. [`.github/workflows/release.yml`](.github/workflows/release.yml) re-runs the checks and the package smoke; the publish job then publishes automatically with OIDC trusted publishing and automatic provenance. The admin-only tag ruleset makes the signed tag push the release approval, so the `npm-release` environment has no manual approval step.
+1. Bump `version` in `package.json`, land it on `main` through a reviewed PR,
+   and wait for CI to pass on the merged SHA.
+2. Tag that SHA with a signed tag and push it. The tag ruleset admits repository
+   admins only.
+3. [`.github/workflows/release.yml`](.github/workflows/release.yml) re-runs the
+   checks and the package smoke; the publish job then publishes automatically
+   with OIDC trusted publishing and automatic provenance. The admin-only tag
+   ruleset makes the signed tag push the release approval, so the `npm-release`
+   environment has no manual approval step.
 
-The workflow stores no npm token: the registry trusts `release.yml` on the `npm-release` environment, and [`scripts/npm/release.py`](scripts/npm/release.py) creates both the environment and that trust. The full runbook is [RELEASE.md](RELEASE.md).
+The workflow stores no npm token: the registry trusts `release.yml` on the
+`npm-release` environment, and
+[`scripts/npm/release.py`](scripts/npm/release.py) creates both the environment
+and that trust. The full runbook is [RELEASE.md](RELEASE.md).
 
 ## License
 
@@ -176,9 +198,19 @@ MIT
 
 ## Git hooks
 
-Checks run in tracked local Git hooks instead of push/PR CI. Run `scripts/setup-hooks` once after cloning; it points this clone's `core.hooksPath` at `.githooks`. Each hook runs the generic checks first (sign-off and commit message format, a gitleaks secret scan, and signed, signed-off commits on push), then this repository's checks in `.githooks/<hook>.d/` in name order. Install [gitleaks](https://github.com/gitleaks/gitleaks) first. Every check must pass before you push; never use `--no-verify`. Pre-push checks test exactly each pushed commit: in place only when it is the clean, unmodified checkout, otherwise in a temporary worktree of that commit.
+Checks run in tracked local Git hooks instead of push/PR CI. Run
+`scripts/setup-hooks` once after cloning; it points this clone's
+`core.hooksPath` at `.githooks`. Each hook runs the generic checks first
+(sign-off and commit message format, a gitleaks secret scan, and signed,
+signed-off commits on push), then this repository's checks in
+`.githooks/<hook>.d/` in name order. Install
+[gitleaks](https://github.com/gitleaks/gitleaks) first. Every check must pass
+before you push; never use `--no-verify`. Pre-push checks test exactly each
+pushed commit: in place only when it is the clean, unmodified checkout,
+otherwise in a temporary worktree of that commit.
 
 This repository's checks:
 
 - `pre-commit`: staged whitespace and conflict-marker check.
-- `pre-push`: `npm audit signatures`, `pnpm run check`, `pnpm audit --audit-level high`.
+- `pre-push`: `npm audit signatures`, `pnpm run check`,
+  `pnpm audit --audit-level high`.
