@@ -23,7 +23,7 @@ const TOOL = join(ROOT, 'tools', 'harness-matrix.mjs')
  * at -0 so the dsh plugin gate, which reads prereleases anywhere, stops there.
  */
 const RANGE =
-  '>=0.1.5-rc.1 <0.1.6-0 || >=0.1.6-0 <0.1.7-0 || >=0.1.7-0 <0.2.0-0 || >=0.2.0-0 <0.2.1-0 || >=0.2.1-0 <0.3.0-0'
+  '>=0.1.5-rc.1 <0.1.6-0 || >=0.1.6-0 <0.1.7-0 || >=0.1.7-0 <0.2.0-0 || >=0.2.0-0 <0.2.1-0 || >=0.2.1-0 <0.2.2-0 || >=0.2.2-0 <0.3.0-0'
 /** The same line as one span, which npm reads as refusing every later prerelease line. */
 const SPANNING = '>=0.1.5-rc.1 <0.3.0-0'
 /** The releases the gates passed against; each one is a distinct line of evidence. */
@@ -35,6 +35,7 @@ const VERIFIED = [
   '0.2.1-rc.2',
   '0.2.1-rc.3',
   '0.2.1-rc.5',
+  '0.2.2-rc.1',
 ]
 /** A release no gate has seen: neither a verified release nor the range's first candidate. */
 const UNVERIFIED = '0.1.5-rc.1'

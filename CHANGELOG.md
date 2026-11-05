@@ -10,6 +10,20 @@ carry a breaking change, and a patch carries only fixes.
 
 ### Compatibility
 
+- Verified against DeepSeek Harness `0.2.2-rc.1`. That release moves the
+  framework to cordis `4.1.0` and schemastery `3.19.0`, so the harness
+  `devDependencies` compile against it and the two toolchain peers widen to
+  `>=4.0.2 <4.2.0-0` and `>=3.18.2 <3.20.0-0`. A profile on the older line
+  still resolves the framework copy it already runs.
+- The supported range gains an alternative for the `0.2.2` tuple. npm resolves a
+  prerelease only through a bound that names its own tuple, so the former single
+  `>=0.2.1-0 <0.3.0-0` alternative would refuse `0.2.2-rc.1` and make the
+  profile resolve a second framework copy beside its own.
+- `0.2.2-rc.1` was published inside the one-week release-age window, so
+  [`pnpm-workspace.yaml`](pnpm-workspace.yaml) exempts each exact lockfile entry
+  it resolves. Remove that list after 2026-11-11 09:22 UTC, when the youngest
+  entry leaves the window.
+
 - The harness registry check moves from a scheduled hosted workflow to the
   `pre-push` hook. A push is blocked when `@deepseek-ai/dsh@latest` is not a
   verified release and has left the release-age window, so no unverified harness
