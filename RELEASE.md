@@ -66,12 +66,12 @@ That failing scheduled run is the matrix bump, and it is a release-sized change:
    cloned home's profile and cross a compaction trigger there, per
    [README](README.md#verification). Unit tests do not prove the engine takes
    over a real profile's service slot.
-5. Land the bump through a reviewed PR.
+5. Land the bump on `main`.
 
 ## Gates — all required before tagging
 
-1. Candidate lands on `main` through a reviewed PR (squash merge).
-2. `verify` CI green on the exact merged SHA.
+1. Candidate lands on `main` as a signed push.
+2. `pre-push` passed on the exact pushed SHA.
 3. Locally on that SHA: `pnpm typecheck`, `pnpm test`, `pnpm run build`, `pnpm
    run test:build`, `pnpm test:release`, `npm audit signatures`, `pnpm audit
    --audit-level high`, `node tools/pack-smoke.mjs`, and `node
@@ -205,7 +205,7 @@ Draft the GitHub release notes against the candidate SHA before tagging. Tag
 creation for `v*` is restricted to repository admins by the ruleset above.
 
 ```sh
-git tag -s -a "v${PKG_VERSION}" -m "v${PKG_VERSION}" <merged-sha>
+git tag -s -a "v${PKG_VERSION}" -m "v${PKG_VERSION}" <candidate-sha>
 git push origin "v${PKG_VERSION}"
 ```
 
