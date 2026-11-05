@@ -34,6 +34,11 @@ carry a breaking change, and a patch carries only fixes.
 
 ### Changed
 
+- The matrix guard reads as named rules instead of one module script, and no
+  branch returns a conditional. The complexity gate measured a returned
+  conditional and the module's top-level statements as one function, so the
+  guard reported 264 lines where its longest rule now holds 31. Its messages,
+  exit codes and flags are unchanged, and so is the published package.
 - The pre-push hook now stops a step that hangs. Network reads, installs, test
   suites, builds and daemon calls each run under a limit. At the limit, the push
   fails and names the step and the elapsed time. The limits are constants at the

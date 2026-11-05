@@ -79,12 +79,19 @@ function parseVersion(value) {
   }
 }
 
-/** Orders two prerelease identifiers: numeric before alphanumeric, each by its own kind. */
+/**
+ * Orders two prerelease identifiers: numeric before alphanumeric, each by its
+ * own kind. Every branch returns from its own statement, because the complexity
+ * scanner's JavaScript parser reads a returned conditional as an unterminated
+ * region and then measures the rest of the file as this one function.
+ */
 function compareIdentifiers(left, right) {
   if (typeof left === 'number' && typeof right === 'number') return left - right
   if (typeof left === 'number') return -1
   if (typeof right === 'number') return 1
-  return left === right ? 0 : left < right ? -1 : 1
+  if (left === right) return 0
+  if (left < right) return -1
+  return 1
 }
 
 /** Orders two parsed versions with semver's rule that a prerelease precedes its release. */
@@ -92,7 +99,11 @@ function compareParsed(a, b) {
   for (let index = 0; index < a.numbers.length; index += 1) {
     if (a.numbers[index] !== b.numbers[index]) return a.numbers[index] - b.numbers[index]
   }
-  if (a.prerelease.length === 0) return b.prerelease.length === 0 ? 0 : 1
+  if (a.prerelease.length === 0) {
+    // A release follows every prerelease, and equals only its own release.
+    if (b.prerelease.length === 0) return 0
+    return 1
+  }
   if (b.prerelease.length === 0) return -1
   for (let index = 0; index < Math.max(a.prerelease.length, b.prerelease.length); index += 1) {
     // A shorter identifier list that matches so far is the earlier prerelease.
@@ -154,23 +165,36 @@ function formatVersion(version) {
 }
 
 const args = process.argv.slice(2)
-const option = (name) => {
-  const index = args.indexOf(`--${name}`)
-  return index >= 0 ? args[index + 1] : undefined
-}
-const manifestPath = resolve(ROOT, option('manifest') ?? 'package.json')
-const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
-const compatibility = manifest.dsh?.compatibility?.dsh
-const releases = Object.keys(manifest.dsh?.compatibility?.dshReleases ?? {})
-const problems = []
 
-const alternatives = parseRange(compatibility)
-if (alternatives === undefined) {
-  problems.push(
-    'dsh.compatibility.dsh must declare ">=lower <upper" alternatives joined by "||", found ' +
-      String(compatibility),
-  )
-} else {
+/** The value of one `--name value` option, or undefined when the flag is absent. */
+function option(name) {
+  const index = args.indexOf(`--${name}`)
+  if (index < 0) return undefined
+  return args[index + 1]
+}
+
+/** The manifest fields every rule below reads, resolved once. */
+function readMatrix() {
+  const path = resolve(ROOT, option('manifest') ?? 'package.json')
+  const manifest = JSON.parse(readFileSync(path, 'utf8'))
+  const compatibility = manifest.dsh?.compatibility?.dsh
+  return {
+    manifest,
+    compatibility,
+    releases: Object.keys(manifest.dsh?.compatibility?.dshReleases ?? {}),
+    alternatives: parseRange(compatibility),
+  }
+}
+
+/** The range must be spelled as bounded alternatives, each refusing its own line's prereleases. */
+function rangeProblems({ compatibility, alternatives }) {
+  if (alternatives === undefined) {
+    return [
+      'dsh.compatibility.dsh must declare ">=lower <upper" alternatives joined by "||", found ' +
+        String(compatibility),
+    ]
+  }
+  const problems = []
   // A bare upper bound admits the next line's release candidates to the dsh
   // plugin gate, which then mounts the plugin on a line no gate has seen.
   for (const { upper } of alternatives) {
@@ -185,11 +209,17 @@ if (alternatives === undefined) {
       )
     }
   }
+  return problems
 }
-if (releases.length === 0) {
-  problems.push('dsh.compatibility.dshReleases must name at least one verified release')
-}
-if (alternatives !== undefined) {
+
+/** Every verified release must lie inside the range under both of its readers. */
+function releaseProblems({ compatibility, releases, alternatives }) {
+  if (releases.length === 0) {
+    return ['dsh.compatibility.dshReleases must name at least one verified release']
+  }
+  // An unreadable range already reported itself; its members cannot be judged.
+  if (alternatives === undefined) return []
+  const problems = []
   for (const release of releases) {
     if (!satisfiesRange(alternatives, release, true)) {
       problems.push(
@@ -207,70 +237,102 @@ if (alternatives !== undefined) {
       )
     }
   }
+  return problems
 }
 
-// A peer accepts the whole line rather than one release: the profile resolves a
-// single harness copy for the host and this plugin, and a peer narrower than the
-// range would resolve the private duplicate the range exists to prevent.
-for (const [name, declared] of harnessEntries(manifest.peerDependencies)) {
-  if (declared !== compatibility) {
-    problems.push(
-      'peer ' +
-        name +
-        ' declares ' +
-        declared +
-        ', not the compatible range ' +
-        String(compatibility),
-    )
+/**
+ * A peer accepts the whole line rather than one release: the profile resolves a
+ * single harness copy for the host and this plugin, and a peer narrower than the
+ * range would resolve the private duplicate the range exists to prevent.
+ */
+function peerProblems({ manifest, compatibility }) {
+  const problems = []
+  for (const [name, declared] of harnessEntries(manifest.peerDependencies)) {
+    if (declared !== compatibility) {
+      problems.push(
+        'peer ' +
+          name +
+          ' declares ' +
+          declared +
+          ', not the compatible range ' +
+          String(compatibility),
+      )
+    }
   }
+  return problems
 }
 
-// A mounted package either accepts the whole compatible line or names one
-// verified release, the way the harness's own bundles pin.
-for (const [name, declared] of harnessEntries(manifest.dependencies)) {
-  if (declared !== compatibility && !releases.includes(declared)) {
-    problems.push(
-      'mounted package ' +
-        name +
-        ' declares ' +
-        declared +
-        ', which is neither the compatible range ' +
-        String(compatibility) +
-        ' nor a verified release',
-    )
+/**
+ * A mounted package either accepts the whole compatible line or names one
+ * verified release, the way the harness's own bundles pin. An aliased install
+ * carries the release of the line no range can reach.
+ */
+function dependencyProblems({ manifest, compatibility, releases }) {
+  const problems = []
+  for (const [name, declared] of harnessEntries(manifest.dependencies)) {
+    if (declared !== compatibility && !releases.includes(declared)) {
+      problems.push(
+        'mounted package ' +
+          name +
+          ' declares ' +
+          declared +
+          ', which is neither the compatible range ' +
+          String(compatibility) +
+          ' nor a verified release',
+      )
+    }
   }
-}
-
-// An aliased install carries the release of the line no range can reach.
-for (const [name, declared] of Object.entries(manifest.dependencies ?? {})) {
-  if (!String(declared).startsWith('npm:')) continue
-  const aliased = /^npm:(.+)@([^@]+)$/u.exec(String(declared))
-  if (aliased === null || !releases.includes(aliased[2])) {
-    problems.push(
-      'aliased dependency ' +
-        name +
-        ' declares ' +
-        declared +
-        ', whose version is not a verified release',
-    )
+  for (const [name, declared] of Object.entries(manifest.dependencies ?? {})) {
+    if (!String(declared).startsWith('npm:')) continue
+    const aliased = /^npm:(.+)@([^@]+)$/u.exec(String(declared))
+    if (aliased === null || !releases.includes(aliased[2])) {
+      problems.push(
+        'aliased dependency ' +
+          name +
+          ' declares ' +
+          declared +
+          ', whose version is not a verified release',
+      )
+    }
   }
+  return problems
 }
 
-const compiled = harnessEntries(manifest.devDependencies)
-if (compiled.length === 0) {
-  problems.push('the manifest compiles against no harness package')
+/** The dev tree compiles against exactly one release, and that one is verified. */
+function compiledProblems({ manifest, releases }) {
+  const compiled = harnessEntries(manifest.devDependencies)
+  const problems = []
+  if (compiled.length === 0) {
+    problems.push('the manifest compiles against no harness package')
+  }
+  const versions = new Set(compiled.map(([, declared]) => declared))
+  if (versions.size > 1) {
+    problems.push(`the harness devDependencies name ${versions.size} versions, not one`)
+  }
+  for (const version of versions) {
+    if (!releases.includes(version)) {
+      problems.push(
+        'the harness devDependencies compile against ' +
+          version +
+          ', which is not a verified release',
+      )
+    }
+  }
+  return { problems, versions }
 }
-const compiledVersions = new Set(compiled.map(([, declared]) => declared))
-if (compiledVersions.size > 1) {
-  problems.push(`the harness devDependencies name ${compiledVersions.size} versions, not one`)
-}
-for (const version of compiledVersions) {
-  if (!releases.includes(version)) {
-    problems.push(
-      'the harness devDependencies compile against ' +
-        version +
-        ', which is not a verified release',
-    )
+
+/** The offline rules, in the order the report lists them. */
+function matrixProblems(matrix) {
+  const compiled = compiledProblems(matrix)
+  return {
+    versions: compiled.versions,
+    problems: [
+      ...rangeProblems(matrix),
+      ...releaseProblems(matrix),
+      ...peerProblems(matrix),
+      ...dependencyProblems(matrix),
+      ...compiled.problems,
+    ],
   }
 }
 
@@ -287,7 +349,7 @@ function releaseAgeEnd(publishedAt) {
 }
 
 /** Records a problem unless the registry's latest is verified or still quarantined. */
-async function checkRegistry() {
+async function checkRegistry(problems, releases) {
   const response = await fetch(REGISTRY_URL, { signal: AbortSignal.timeout(REGISTRY_TIMEOUT_MS) })
   if (!response.ok) {
     problems.push(`the registry read failed with HTTP ${response.status}`)
@@ -319,28 +381,49 @@ async function checkRegistry() {
   }
 }
 
-if (args.includes('--check-registry')) {
-  try {
-    await checkRegistry()
-  } catch (error) {
-    // A failed read stays a failure, reported once with its cause in one line.
-    problems.push(
-      `the registry read of ${REGISTRY_URL} failed: ${error?.cause?.code ?? error?.message ?? error}`,
-    )
+/** Prints the verdict: every problem, or the one summary line the hook reads. */
+function report(problems, { releases, versions, compatibility }) {
+  if (problems.length > 0) {
+    console.error('harness-matrix: the matrix is inconsistent')
+    for (const problem of problems) console.error(`  - ${problem}`)
+    process.exit(1)
   }
+  console.log(
+    'harness-matrix: ok (' +
+      releases.length +
+      ' verified, compiled ' +
+      [...versions].join(', ') +
+      ', peers ' +
+      String(compatibility) +
+      ')',
+  )
 }
 
-if (problems.length > 0) {
-  console.error('harness-matrix: the matrix is inconsistent')
-  for (const problem of problems) console.error(`  - ${problem}`)
-  process.exit(1)
+/** Runs the offline rules, then the registry read when the hook asks for it. */
+async function main() {
+  const matrix = readMatrix()
+  const { problems, versions } = matrixProblems(matrix)
+  if (args.includes('--check-registry')) {
+    try {
+      await checkRegistry(problems, matrix.releases)
+    } catch (error) {
+      // A failed read stays a failure, reported once with its cause in one line.
+      problems.push(
+        `the registry read of ${REGISTRY_URL} failed: ${error?.cause?.code ?? error?.message ?? error}`,
+      )
+    }
+  }
+  report(problems, {
+    releases: matrix.releases,
+    versions,
+    compatibility: matrix.compatibility,
+  })
 }
-console.log(
-  'harness-matrix: ok (' +
-    releases.length +
-    ' verified, compiled ' +
-    [...compiledVersions].join(', ') +
-    ', peers ' +
-    String(compatibility) +
-    ')',
-)
+
+// A plain call, never a top-level await: the complexity scanner reads every
+// top-level statement after an awaited call as one function, which hides the
+// real functions of this module from the push gate.
+main().catch((error) => {
+  console.error(`harness-matrix: ${error?.message ?? error}`)
+  process.exit(1)
+})
