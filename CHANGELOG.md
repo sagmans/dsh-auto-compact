@@ -16,11 +16,11 @@ carry a breaking change, and a patch carries only fixes.
   line goes unnoticed. All checks now run locally behind the hooks. The published
   package is unchanged.
 
-- Verified against DeepSeek Harness `0.2.1-rc.2` and `0.2.1-rc.3`. The harness
-  `devDependencies` compile against `0.2.1-rc.3`, which ships the same cordis
-  `4.0.5` and schemastery `3.18.5` as `0.2.1-rc.2`. The supported range already
-  admits `0.2.1-rc.3`, so it and the peers do not change. The published package
-  is unchanged.
+- Verified against DeepSeek Harness `0.2.1-rc.2`, `0.2.1-rc.3`, and
+  `0.2.1-rc.5`. The harness `devDependencies` compile against `0.2.1-rc.5`,
+  which ships the same cordis `4.0.5` and schemastery `3.18.5` as the two
+  earlier releases. The supported range already admits `0.2.1-rc.5`, so it and
+  the peers do not change. The published package is unchanged.
 - The supported line keeps its span, from `0.1.5-rc.1` up to `0.3.0`, but is now
   spelled as one alternative per line, each bounded at `-0`. npm refused the
   `0.1.7`, `0.2.0`, and `0.2.1` prerelease hosts under the single

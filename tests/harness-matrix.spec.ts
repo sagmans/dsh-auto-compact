@@ -34,6 +34,7 @@ const VERIFIED = [
   '0.2.0-rc.2',
   '0.2.1-rc.2',
   '0.2.1-rc.3',
+  '0.2.1-rc.5',
 ]
 /** A release no gate has seen: neither a verified release nor the range's first candidate. */
 const UNVERIFIED = '0.1.5-rc.1'
@@ -66,6 +67,11 @@ function matrix(overrides: Partial<Manifest> = {}): Manifest {
   return Object.assign(base, overrides)
 }
 
+/** Escape the metacharacters a version or a peer range carries. */
+function escapeRe(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 /** Run the guard against one manifest and report its exit code with its output. */
 function guard(manifest: Manifest) {
   const home = mkdtempSync(join(tmpdir(), 'dsh-auto-compact-matrix-'))
@@ -84,10 +90,13 @@ describe('harness matrix', () => {
   it("accepts a matrix that names the range, one verified release, and that release's peers", () => {
     const { code, output } = guard(matrix())
     assert.equal(code, 0, output)
-    assert.match(
-      output,
-      /harness-matrix: ok \(6 verified, compiled 0\.1\.5-rc\.2, peers >=0\.1\.5-rc\.1 <0\.1\.6-0 \|\| /,
+    // The count and the compiled release come from the fixture list, so a matrix
+    // bump cannot pass while the guard reports a stale number.
+    const summary = new RegExp(
+      `harness-matrix: ok \\(${VERIFIED.length} verified, compiled ${escapeRe(VERIFIED[0])}, ` +
+        `peers ${escapeRe(RANGE.slice(0, RANGE.indexOf(' || ')))} \\|\\| `,
     )
+    assert.match(output, summary)
   })
 
   it('declares the wider line, the verified releases, and the guard in this manifest', () => {

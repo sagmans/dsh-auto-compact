@@ -20,9 +20,9 @@ npm token is stored. The code is [MIT licensed](LICENSE).
 - pnpm 11.21.0 for this repository.
 - A DeepSeek Harness install on the supported line: `0.1.5-rc.1` up to, but not
   including, `0.3.0` and its prereleases, verified against `0.1.5-rc.2`,
-  `0.1.5-rc.3`, `0.1.7-rc.2`, `0.2.0-rc.2`, `0.2.1-rc.2`, and `0.2.1-rc.3`. The
-  range in `package.json` spells one `>=lower <upper-0` alternative per line, so
-  npm and the harness read it the same way (see
+  `0.1.5-rc.3`, `0.1.7-rc.2`, `0.2.0-rc.2`, `0.2.1-rc.2`, `0.2.1-rc.3`, and
+  `0.2.1-rc.5`. The range in `package.json` spells one `>=lower <upper-0`
+  alternative per line, so npm and the harness read it the same way (see
   [RELEASE.md](RELEASE.md#harness-matrix)). The plugin declares that range as a
   peer dependency, so a profile resolves the harness copy it already has rather
   than a second framework instance, and `dsh.compatibility.dshReleases` names
