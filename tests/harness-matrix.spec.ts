@@ -86,7 +86,7 @@ function guard(manifest: Manifest) {
   }
 }
 
-describe('harness matrix', () => {
+describe('harness matrix acceptance', () => {
   it("accepts a matrix that names the range, one verified release, and that release's peers", () => {
     const { code, output } = guard(matrix())
     assert.equal(code, 0, output)
@@ -118,7 +118,9 @@ describe('harness matrix', () => {
     const { code, output } = guard(shipped)
     assert.equal(code, 0, output)
   })
+})
 
+describe('harness matrix range and peer rules', () => {
   it('rejects a verified release outside the range', () => {
     for (const release of ['0.3.0', '0.3.0-rc.1']) {
       const broken = matrix()
@@ -189,7 +191,9 @@ describe('harness matrix', () => {
     assert.equal(code, 1)
     assert.match(output, /the harness devDependencies name 2 versions, not one/)
   })
+})
 
+describe('harness matrix dependency rules', () => {
   it('rejects harness devDependencies that name an unverified release', () => {
     const broken = matrix({
       devDependencies: { '@deepseek-ai/dsh': UNVERIFIED, '@deepseek-ai/dsh-agent': UNVERIFIED },
