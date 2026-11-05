@@ -28,6 +28,10 @@ carry a breaking change, and a patch carries only fixes.
 
 ### Changed
 
+- The pre-push hook now stops a step that hangs. Network reads, installs, test
+  suites, builds and daemon calls each run under a limit. At the limit, the push
+  fails and names the step and the elapsed time. The limits are constants at the
+  top of each check.
 - Development checks lint and format the code with Biome `2.6.3`: the pre-commit
   hook checks the staged files, and `pnpm run check` checks the whole tree on
   every push. The code was reformatted once to the existing style. The published
