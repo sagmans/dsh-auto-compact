@@ -8,6 +8,11 @@ carry a breaking change, and a patch carries only fixes.
 
 ## [Unreleased]
 
+### Fixed
+
+- Release-helper checks require uv-managed Python, including when the shell
+  environment does not provide the usual Python path.
+
 ### Compatibility
 
 - Verified against DeepSeek Harness `0.2.2-rc.1`. That release moves the

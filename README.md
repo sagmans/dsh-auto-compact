@@ -18,6 +18,8 @@ npm token is stored. The code is [MIT licensed](LICENSE).
 
 - Node.js 24 LTS (verified with 24.22.1).
 - pnpm 11.21.0 for this repository.
+- uv for the release-helper checks. They require a uv-managed Python and stop
+  if uv is absent, so a minimal PATH cannot select the system Python.
 - A DeepSeek Harness install on the supported line: `0.1.5-rc.1` up to, but not
   including, `0.3.0` and its prereleases, verified against `0.1.5-rc.2`,
   `0.1.5-rc.3`, `0.1.7-rc.2`, `0.2.0-rc.2`, `0.2.1-rc.2`, `0.2.1-rc.3`,
