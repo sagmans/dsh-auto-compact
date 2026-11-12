@@ -24,11 +24,6 @@ carry a breaking change, and a patch carries only fixes.
   prerelease only through a bound that names its own tuple, so the former single
   `>=0.2.1-0 <0.3.0-0` alternative would refuse `0.2.2-rc.1` and make the
   profile resolve a second framework copy beside its own.
-- `0.2.2-rc.1` was published inside the one-week release-age window, so
-  [`pnpm-workspace.yaml`](pnpm-workspace.yaml) exempts each exact lockfile entry
-  it resolves. Remove that list after 2026-11-11 09:22 UTC, when the youngest
-  entry leaves the window.
-
 - The harness registry check moves from a scheduled hosted workflow to the
   `pre-push` hook. A push is blocked when `@deepseek-ai/dsh@latest` is not a
   verified release and has left the release-age window, so no unverified harness
@@ -91,6 +86,9 @@ carry a breaking change, and a patch carries only fixes.
   goes on the candidate commit.
 
 ### Security
+
+- Retired the temporary release-age waiver for `0.2.2-rc.1` and its
+  dependencies after every exempt version cleared the seven-day window.
 
 - The release workflow no longer restores a dependency cache. A cache that
   another run could write must not feed the artefact a tag publishes. The
