@@ -48,6 +48,12 @@ carry a breaking change, and a patch carries only fixes.
 
 ### Changed
 
+- Pin repository tooling in `mise.toml`, `packageManager`, and
+  `pyproject.toml`/`uv.lock`, enforce fail-closed Python (`ruff` format/lint,
+  `mypy`) and shell (`shellcheck`, `shfmt`) checks across `pre-commit` and
+  `pnpm run check`, verify tool floors before `pre-push` dependency install,
+  and force online `pnpm audit` at `pre-push`. The published package is
+  unchanged.
 - The matrix guard reads as named rules instead of one module script, and no
   branch returns a conditional. The complexity gate measured a returned
   conditional and the module's top-level statements as one function, so the

@@ -12,8 +12,10 @@ the gate before `origin`. Rebase on `origin/main` before each push, and never
 force-push `main`. Use scoped Conventional Commits, signed and DCO-signed. Every
 change adds its `CHANGELOG.md` entry under `## [Unreleased]`.
 
-`pnpm run check` runs the Biome lint and format check, typecheck, unit tests,
-build, built-output tests, release-helper guards, tarball smoke, and the harness
+`pnpm run check` runs the tool-version check (`mise.toml` and `packageManager`),
+Biome lint and format check, Python ruff lint/format and mypy typecheck,
+shellcheck and shfmt checks, TypeScript typecheck, unit tests, build,
+built-output tests, release-helper guards, tarball smoke, and the harness
 matrix guard.
 `pnpm test:release` uses synthetic CLIs and performs no registry publication.
 No credentials belong in the repository. Test profiles use a scratch
@@ -64,12 +66,16 @@ broken packages as `RELEASE.md` directs. Helper mutations require
 Checks run in `.githooks/`, not in push/PR CI. Run `scripts/setup-hooks` after
 cloning. All checks must pass before you push. Never use `--no-verify`.
 `pre-commit`: Biome on the staged files (`pnpm run lint:fix` repairs most
-findings). `pre-push`: `npm audit signatures`, `pnpm run check`,
-`pnpm audit --audit-level high`, and
+findings), pinned `ruff` format/lint on staged Python files (`uv.lock`), and
+`shellcheck`/`shfmt` on staged shell scripts. `pre-push`: `npm audit signatures`,
+`pnpm run check`, `pnpm audit --audit-level high`, and
 `node tools/harness-matrix.mjs --check-registry`, which blocks the push when
 the latest harness release is not verified and has left the release-age window.
+Tool floors live in `mise.toml`, `package.json`, `pnpm-lock.yaml`, and
+`uv.lock`.
 
 Commit messages follow `.githooks/GIT_CONVENTION.md`, which `commit-msg` and
 `pre-push` enforce. The generic checks need gitleaks, osv-scanner, semgrep,
 lizard and markdownlint-cli2, plus actionlint and zizmor when a push changes
-workflow files. A missing tool blocks the hook.
+workflow files; stack checks also require `uv`, `shellcheck`, and `shfmt`
+(pinned in `mise.toml`). A missing tool blocks the hook.

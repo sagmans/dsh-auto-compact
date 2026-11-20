@@ -10,6 +10,7 @@ export DSH_TELEMETRY_DISABLED
 # Limits for run_step. Each one catches a hang, not a slow run, so it stays far
 # above a normal run on a loaded machine: the registry reads take seconds and
 # the check suite takes about a minute.
+TOOL_CHECK_TIMEOUT_SECONDS=30
 NETWORK_TIMEOUT_SECONDS=120
 INSTALL_TIMEOUT_SECONDS=300
 CHECK_TIMEOUT_SECONDS=600
@@ -17,7 +18,7 @@ CHECK_TIMEOUT_SECONDS=600
 checks() {
 	run_step 'npm audit signatures' "$NETWORK_TIMEOUT_SECONDS" npm audit signatures || return 1
 	run_step 'pnpm run check' "$CHECK_TIMEOUT_SECONDS" pnpm run check || return 1
-	run_step 'pnpm audit' "$NETWORK_TIMEOUT_SECONDS" pnpm audit --audit-level high || return 1
+	run_step 'pnpm audit' "$NETWORK_TIMEOUT_SECONDS" pnpm audit --audit-level high --config.offline=false --config.audit=true || return 1
 	# Blocks the push once the harness serves a `latest` that left the release-age
 	# window and that no gate verified, so the plugin never stays behind the
 	# release users install. A failed registry read also blocks: an unread
@@ -44,6 +45,7 @@ install_deps() {
 
 # at_sha runs this with set -e off, so every step returns on failure.
 run_at() {
+	run_step 'tool floors' "$TOOL_CHECK_TIMEOUT_SECONDS" bash scripts/stack-checks.sh tools || return 1
 	install_deps || return 1
 	checks || return 1
 }
