@@ -15,11 +15,11 @@ carry a breaking change, and a patch carries only fixes.
 
 ### Compatibility
 
-- Verified against DeepSeek Harness `0.2.2-rc.1`. That release moves the
-  framework to cordis `4.1.0` and schemastery `3.19.0`, so the harness
-  `devDependencies` compile against it and the two toolchain peers widen to
-  `>=4.0.2 <4.2.0-0` and `>=3.18.2 <3.20.0-0`. A profile on the older line
-  still resolves the framework copy it already runs.
+- Verified against DeepSeek Harness `0.2.2-rc.5` (and `0.2.2-rc.1`). The
+  `0.2.2` line moves the framework to cordis `4.1.0` and schemastery `3.19.0`,
+  so the harness `devDependencies` compile against it and the two toolchain
+  peers widen to `>=4.0.2 <4.2.0-0` and `>=3.18.2 <3.20.0-0`. A profile on the
+  older line still resolves the framework copy it already runs.
 - The supported range gains an alternative for the `0.2.2` tuple. npm resolves a
   prerelease only through a bound that names its own tuple, so the former single
   `>=0.2.1-0 <0.3.0-0` alternative would refuse `0.2.2-rc.1` and make the
@@ -89,6 +89,10 @@ carry a breaking change, and a patch carries only fixes.
 
 ### Security
 
+- Added a temporary release-age waiver of exact `name@version` entries for the
+  `0.2.2-rc.5` harness tree, which the owner approved. The youngest entry is
+  `@deepseek-ai/dsh-web-app@0.2.2-rc.5` (published 2026-11-18 13:20 UTC).
+  Remove the whole list on or after 2026-11-25 13:21 UTC.
 - Retired the temporary release-age waiver for `0.2.2-rc.1` and its
   dependencies after every exempt version cleared the seven-day window.
 
